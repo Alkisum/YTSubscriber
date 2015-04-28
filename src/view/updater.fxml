@@ -1,0 +1,80 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<GridPane fx:controller="controller.Updater"
+          xmlns:fx="http://javafx.com/fxml"
+          stylesheets="/view/updater.css">
+
+    <SplitPane fx:id="split"
+               GridPane.columnIndex="0"
+               GridPane.rowIndex="1"
+               GridPane.hgrow="ALWAYS"
+               GridPane.vgrow="ALWAYS"
+               dividerPositions="0.3">
+
+        <padding>
+            <Insets bottom="5.0" left="0.0" right="0.0" top="5.0"/>
+        </padding>
+
+        <GridPane hgap="5"
+                  vgap="5"
+                  GridPane.hgrow="ALWAYS"
+                  GridPane.vgrow="ALWAYS">
+
+            <padding>
+                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+            </padding>
+
+            <Button text="Subscriptions"
+                    prefHeight="28"
+                    GridPane.columnIndex="0"
+                    GridPane.rowIndex="0"
+                    GridPane.hgrow="ALWAYS"/>
+
+            <Button GridPane.columnIndex="1"
+                    GridPane.rowIndex="0"
+                    onAction="#onSettingsButtonClicked">
+                <graphic>
+                    <ImageView>
+                        <Image url="@icons/ic_settings_black_18dp.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <Button GridPane.columnIndex="2"
+                    GridPane.rowIndex="0">
+                <graphic>
+                    <ImageView>
+                        <Image url="@icons/ic_sync_black_18dp.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <ListView fx:id="channelList"
+                      GridPane.columnIndex="0"
+                      GridPane.rowIndex="1"
+                      GridPane.columnSpan="3"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.vgrow="ALWAYS"/>
+
+        </GridPane>
+
+        <GridPane GridPane.hgrow="ALWAYS"
+                  GridPane.vgrow="ALWAYS">
+
+            <padding>
+                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+            </padding>
+
+            <ListView GridPane.columnIndex="0"
+                      GridPane.rowIndex="0"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.vgrow="ALWAYS"/>
+
+        </GridPane>
+
+    </SplitPane>
+
+</GridPane>
