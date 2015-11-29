@@ -1,29 +1,40 @@
 package controller;
 
+import controller.tasks.RssReader;
+import controller.ui.ConfirmationDialog;
+import controller.ui.ExceptionDialog;
+import controller.ui.VideoPane;
+import database.Database;
+import exception.ExceptionHandler;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-import model.Database;
+import model.Channel;
+import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /**
  * Controller for Subscription Updater.
+ *
  * @author Alkisum
  * @version 1.0
  * @since 19/04/15
@@ -40,46 +51,253 @@ public class Updater implements Initializable {
      */
     public static final int WIDTH = 800, HEIGHT = 600;
 
-    public ListView<String> channelList;
-    public SplitPane split;
+    /**
+     * List of videos shown in Video's scroll pane.
+     */
+    private List<Video> mVideosShown;
+
+    /**
+     * Scroll pane containing the videos.
+     */
+    @FXML
+    private ScrollPane mScrollPaneVideo;
+
+    /**
+     * Progress message.
+     */
+    @FXML
+    private Label mProgressMessage;
+
+    /**
+     * Progress bar.
+     */
+    @FXML
+    private ProgressBar mProgressBar;
+
+    /**
+     * ListView containing the channel names.
+     */
+    @FXML
+    private ListView<Channel> mListViewChannel;
 
     @Override
-    public void initialize(final URL location, final ResourceBundle resources) {
+    public final void initialize(final URL location,
+                                 final ResourceBundle resources) {
         try {
-            LOGGER.error("Initialise test");
+            // Create database tables if they do not exist yet
             Database.create();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+            // Initialize channel list
+            refreshChannelList();
+            // Initialize video list
+            mVideosShown = Database.getUnwatchedVideos();
+            refreshVideoList();
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
             e.printStackTrace();
         }
-        // Initialize channel list
-        ObservableList<String> items = FXCollections.observableArrayList(
-                "Single", "Double", "Suite", "Family App");
-        channelList.setItems(items);
+    }
 
+    /**
+     * Triggered when the subscriptions button is clicked.
+     */
+    @FXML
+    public final void onSubscriptionsClicked() {
+        try {
+            mVideosShown = Database.getUnwatchedVideos();
+            refreshVideoList();
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
     }
 
     /**
      * Triggered when Manage Button is clicked.
-     * @param event Event
+     *
+     * @param actionEvent Event that triggered the method
      */
-    public final void onSettingsButtonClicked(final Event event) {
+    @FXML
+    public final void onManageClicked(final ActionEvent actionEvent) {
         try {
             FXMLLoader loader = new FXMLLoader(
-                   getClass().getResource("../view/manager.fxml"));
+                    getClass().getResource("/view/manager.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Channel Manager");
             stage.setScene(new Scene(loader.load(),
                     Manager.WIDTH, Manager.HEIGHT));
+            Manager manager = loader.getController();
+            manager.setStage(stage);
             // Disable manager button
-            Button btn = (Button) event.getSource();
+            Button btn = (Button) actionEvent.getSource();
             btn.setDisable(true);
-            // Enable manager button
-            stage.setOnCloseRequest(we -> btn.setDisable(false));
+            // Enable manager button and refresh lists
+            stage.setOnCloseRequest(we -> {
+                try {
+                    btn.setDisable(false);
+                    refreshChannelList();
+                    mVideosShown = Database.getVideos(mVideosShown);
+                    refreshVideoList();
+                } catch (ClassNotFoundException | ExceptionHandler
+                        | SQLException e) {
+                    ExceptionDialog.show(e);
+                    LOGGER.error(e);
+                    e.printStackTrace();
+                }
+            });
             stage.show();
         } catch (IOException e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Triggered when Refresh Button is clicked.
+     */
+    @FXML
+    public final void onRefreshClicked() {
+        RssReader rssReader = null;
+        try {
+            rssReader = new RssReader(Database.getAllChannels());
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+
+        if (rssReader == null) {
+            return;
+        }
+
+        mProgressMessage.textProperty().bind(rssReader.messageProperty());
+        mProgressBar.progressProperty().bind(rssReader.progressProperty());
+
+        new Thread(rssReader).start();
+
+        rssReader.setOnSucceeded(t -> {
+            mProgressMessage.textProperty().unbind();
+            mProgressBar.progressProperty().unbind();
+            mProgressMessage.setText("");
+            mProgressBar.setProgress(0);
+            refreshChannelList();
+        });
+
+        final RssReader finalRssReader = rssReader;
+        rssReader.setOnFailed(t -> {
+            try {
+                mProgressMessage.textProperty().unbind();
+                mProgressBar.progressProperty().unbind();
+                mProgressMessage.setText("");
+                mProgressBar.setProgress(0);
+                throw finalRssReader.getException();
+            } catch (Throwable throwable) {
+                ExceptionDialog.show(throwable);
+                LOGGER.error(throwable);
+                throwable.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Triggered when the list view is clicked.
+     */
+    @FXML
+    public final void onListViewClicked() {
+        int id = mListViewChannel.getSelectionModel().getSelectedItem().getId();
+        try {
+            mVideosShown = Database.getAllVideosByChannel(id);
+            refreshVideoList();
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Triggered when the watch all button is clicked.
+     */
+    @FXML
+    public final void onWatchAll() {
+        ConfirmationDialog.show(
+                "Watch all videos",
+                "Are you sure you want to set all the videos to watched?",
+                new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        try {
+                            Database.updateVideoWatchState(true);
+                            // Initialize channel list
+                            refreshChannelList();
+                            // Refresh video list
+                            mVideosShown = Database.getVideos(mVideosShown);
+                            refreshVideoList();
+                        } catch (ClassNotFoundException | SQLException
+                                | ExceptionHandler e) {
+                            ExceptionDialog.show(e);
+                            LOGGER.error(e);
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+
+    /**
+     * Triggered when the unwatch all button is clicked.
+     */
+    @FXML
+    public final void onUnwatchAll() {
+        ConfirmationDialog.show(
+                "Unwatch all videos",
+                "Are you sure you want to set all the videos to unwatched?",
+                new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        try {
+                            Database.updateVideoWatchState(false);
+                            // Initialize channel list
+                            refreshChannelList();
+                            // Refresh video list
+                            mVideosShown = Database.getVideos(mVideosShown);
+                            refreshVideoList();
+                        } catch (ClassNotFoundException | SQLException
+                                | ExceptionHandler e) {
+                            ExceptionDialog.show(e);
+                            LOGGER.error(e);
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+
+    /**
+     * Retrieve channels from database and populate the list.
+     */
+    public final void refreshChannelList() {
+        try {
+            ObservableList<Channel> items = FXCollections.observableArrayList();
+            List<Channel> channels = Database.getAllChannels();
+            items.addAll(channels.stream().collect(Collectors.toList()));
+            mListViewChannel.setItems(items);
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Refresh the video list.
+     */
+    private void refreshVideoList() {
+        mScrollPaneVideo.setContent(new VideoPane(mVideosShown, this,
+                mProgressMessage, mProgressBar));
     }
 }

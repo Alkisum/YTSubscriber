@@ -1,6 +1,8 @@
 package exception;
 
 /**
+ * Exception handler.
+ *
  * @author Alkisum
  * @version 1.0
  * @since 27/04/15.
@@ -10,15 +12,16 @@ public class ExceptionHandler extends Exception {
     /**
      * Error code.
      */
-    private int code;
+    private final int code;
 
     /**
      * Error message.
      */
-    private String message;
+    private final String message;
 
     /**
      * ExceptionHandler constructor.
+     *
      * @param error Error
      */
     public ExceptionHandler(final Error error) {

@@ -1,13 +1,9 @@
-.split-pane {
-    -fx-background-color: transparent;
-}
-
 .progress-message {
-    -fx-padding: 0 5 5 5;
+    -fx-padding: 5 5 5 11;
 }
 
 .progress-bar {
-    -fx-padding: 0 27 5 5;
+    -fx-padding: 5 27 5 5;
 }
 
 .button {

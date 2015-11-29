@@ -2,6 +2,7 @@ package exception;
 
 /**
  * Enum class to enumerate the errors.
+ *
  * @author Alkisum
  * @version 1.0
  * @since 27/04/15.
@@ -11,7 +12,7 @@ public enum Error {
     /**
      * Database: Connection.
      */
-    DB_CONNECTION(0, "sqd");
+    DB_CONNECTION(0, "Cannot connect to the database.");
 
     /**
      * Error code.
@@ -25,7 +26,8 @@ public enum Error {
 
     /**
      * Error constructor.
-     * @param pCode Exception code
+     *
+     * @param pCode    Exception code
      * @param pMessage Exception message
      */
     Error(final int pCode, final String pMessage) {

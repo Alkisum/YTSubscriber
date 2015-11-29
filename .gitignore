@@ -2,5 +2,5 @@
 /doc
 /out
 /todo.txt
-*.db
+/subscription_manager
 *.log

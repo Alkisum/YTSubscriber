@@ -7,9 +7,9 @@
           xmlns:fx="http://javafx.com/fxml"
           stylesheets="/view/updater.css">
 
-    <SplitPane fx:id="split"
-               GridPane.columnIndex="0"
-               GridPane.rowIndex="1"
+    <SplitPane GridPane.columnIndex="0"
+               GridPane.rowIndex="0"
+               GridPane.columnSpan="2"
                GridPane.hgrow="ALWAYS"
                GridPane.vgrow="ALWAYS"
                dividerPositions="0.3">
@@ -31,50 +31,115 @@
                     prefHeight="28"
                     GridPane.columnIndex="0"
                     GridPane.rowIndex="0"
-                    GridPane.hgrow="ALWAYS"/>
+                    GridPane.hgrow="ALWAYS"
+                    onAction="#onSubscriptionsClicked">
+                <tooltip>
+                    <Tooltip text="Show unwatched videos"/>
+                </tooltip>
+            </Button>
 
             <Button GridPane.columnIndex="1"
                     GridPane.rowIndex="0"
-                    onAction="#onSettingsButtonClicked">
+                    onAction="#onManageClicked">
+                <tooltip>
+                    <Tooltip text="Manage the channels"/>
+                </tooltip>
                 <graphic>
                     <ImageView>
-                        <Image url="@icons/ic_settings_black_18dp.png"/>
+                        <Image url="@icons/ic_settings_grey_18dp.png"/>
                     </ImageView>
                 </graphic>
             </Button>
 
             <Button GridPane.columnIndex="2"
-                    GridPane.rowIndex="0">
+                    GridPane.rowIndex="0"
+                    onAction="#onRefreshClicked">
+                <tooltip>
+                    <Tooltip text="Check for new videos available"/>
+                </tooltip>
                 <graphic>
                     <ImageView>
-                        <Image url="@icons/ic_sync_black_18dp.png"/>
+                        <Image url="@icons/ic_sync_grey_18dp.png"/>
                     </ImageView>
                 </graphic>
             </Button>
 
-            <ListView fx:id="channelList"
+            <ListView fx:id="mListViewChannel"
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="1"
                       GridPane.columnSpan="3"
                       GridPane.hgrow="ALWAYS"
-                      GridPane.vgrow="ALWAYS"/>
-
+                      GridPane.vgrow="ALWAYS"
+                      onMouseClicked="#onListViewClicked"/>
         </GridPane>
 
-        <GridPane GridPane.hgrow="ALWAYS"
+        <GridPane hgap="5"
+                  vgap="5"
+                  GridPane.hgrow="ALWAYS"
                   GridPane.vgrow="ALWAYS">
 
             <padding>
                 <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
             </padding>
 
-            <ListView GridPane.columnIndex="0"
-                      GridPane.rowIndex="0"
-                      GridPane.hgrow="ALWAYS"
-                      GridPane.vgrow="ALWAYS"/>
+            <Button GridPane.columnIndex="0"
+                    GridPane.rowIndex="0"
+                    GridPane.hgrow="ALWAYS"
+                    GridPane.halignment="RIGHT"
+                    onAction="#onWatchAll">
+                <tooltip>
+                    <Tooltip
+                            text="Update all the videos to &quot;watched&quot;"/>
+                </tooltip>
+                <graphic>
+                    <ImageView>
+                        <Image url="@icons/ic_visibility_grey_18dp.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
 
+            <Button GridPane.columnIndex="1"
+                    GridPane.rowIndex="0"
+                    onAction="#onUnwatchAll">
+                <tooltip>
+                    <Tooltip
+                            text="Update all the videos to &quot;unwatched&quot;"/>
+                </tooltip>
+                <graphic>
+                    <ImageView>
+                        <Image url="@icons/ic_visibility_off_grey_18dp.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <Pane prefWidth="13"
+                  GridPane.columnIndex="2"
+                  GridPane.rowIndex="0"/>
+
+            <ScrollPane fx:id="mScrollPaneVideo"
+                        GridPane.rowIndex="1"
+                        GridPane.columnIndex="0"
+                        GridPane.columnSpan="3"
+                        vbarPolicy="ALWAYS"
+                        hbarPolicy="NEVER"
+                        GridPane.hgrow="ALWAYS"
+                        GridPane.vgrow="ALWAYS"
+                        fitToWidth="true"/>
         </GridPane>
 
     </SplitPane>
+
+    <Label fx:id="mProgressMessage"
+           styleClass="progress-message"
+           GridPane.columnIndex="0"
+           GridPane.rowIndex="1"
+           GridPane.hgrow="ALWAYS"/>
+
+    <ProgressBar fx:id="mProgressBar"
+                 styleClass="progress-bar"
+                 GridPane.columnIndex="1"
+                 GridPane.rowIndex="1"
+                 progress="0"
+                 prefWidth="200"/>
 
 </GridPane>

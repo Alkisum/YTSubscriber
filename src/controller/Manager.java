@@ -1,22 +1,30 @@
 package controller;
 
+import controller.tasks.OpmlReader;
+import controller.ui.AddChannelDialog;
+import controller.ui.ChannelPane;
+import controller.ui.ConfirmationDialog;
+import controller.ui.EditChannelDialog;
+import controller.ui.ExceptionDialog;
+import database.Database;
+import exception.ExceptionHandler;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import model.Channel;
-import model.Database;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
@@ -40,12 +48,36 @@ public class Manager implements Initializable {
     /**
      * Frame dimensions.
      */
-    public static final int WIDTH = 600, HEIGHT = 400;
+    public static final int WIDTH = 800, HEIGHT = 600;
 
     /**
-     * Vertical Box containing the list of channels.
+     * Stage instance.
      */
-    public VBox mVBoxChannel;
+    private Stage mStage;
+
+    /**
+     * CheckBox to select or deselect all the channels.
+     */
+    @FXML
+    private CheckBox mCheckBoxAll;
+
+    /**
+     * ScrollPane displaying channel list.
+     */
+    @FXML
+    private ScrollPane mScrollPaneChannel;
+
+    /**
+     * Progress bar.
+     */
+    @FXML
+    private ProgressBar mProgressBar;
+
+    /**
+     * Progress message.
+     */
+    @FXML
+    private Label mProgressMessage;
 
     /**
      * List of channels.
@@ -58,10 +90,75 @@ public class Manager implements Initializable {
         try {
             mChannelList = collectChannels();
             showChannel(false);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
             LOGGER.error(e);
-            showExceptionDialog(e);
+            e.printStackTrace();
         }
+    }
+
+    /**
+     * Select all the channels.
+     */
+    @FXML
+    public final void onSelectAll() {
+        for (Channel channel : mChannelList) {
+            channel.setChecked(mCheckBoxAll.isSelected());
+        }
+        try {
+            showChannel(false);
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Called when the Import button is clicked.
+     */
+    @FXML
+    public final void onImportClicked() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open OPML File");
+        File selectedFile = fileChooser.showOpenDialog(mStage);
+
+        if (selectedFile == null) {
+            return;
+        }
+        OpmlReader opmlReader = new OpmlReader(selectedFile);
+        mProgressMessage.textProperty().bind(opmlReader.messageProperty());
+        mProgressBar.progressProperty().bind(opmlReader.progressProperty());
+
+        new Thread(opmlReader).start();
+        opmlReader.setOnSucceeded(t -> {
+            try {
+                mProgressMessage.textProperty().unbind();
+                mProgressBar.progressProperty().unbind();
+                mProgressMessage.setText("");
+                mProgressBar.setProgress(0);
+                showChannel(true);
+            } catch (ClassNotFoundException | SQLException
+                    | ExceptionHandler e) {
+                ExceptionDialog.show(e);
+                LOGGER.error(e);
+                e.printStackTrace();
+            }
+        });
+
+        opmlReader.setOnFailed(t -> {
+            try {
+                mProgressMessage.textProperty().unbind();
+                mProgressBar.progressProperty().unbind();
+                mProgressMessage.setText("");
+                mProgressBar.setProgress(0);
+                throw opmlReader.getException();
+            } catch (Throwable throwable) {
+                ExceptionDialog.show(throwable);
+                LOGGER.error(throwable);
+                throwable.printStackTrace();
+            }
+        });
     }
 
     /**
@@ -69,6 +166,7 @@ public class Manager implements Initializable {
      *
      * @param actionEvent Event that triggered the method
      */
+    @FXML
     public final void onAddChannelClicked(final ActionEvent actionEvent) {
         Button btn = (Button) actionEvent.getSource();
         btn.setDisable(true);
@@ -78,14 +176,26 @@ public class Manager implements Initializable {
     /**
      * Triggered when the user clicks on the delete selection button.
      */
+    @FXML
     public final void onDeleteSelectionClicked() {
-        try {
-            Database.deleteChannels(getSelection());
-            showChannel(true);
-        } catch (SQLException | ClassNotFoundException e) {
-            LOGGER.error(e);
-            showExceptionDialog(e);
-        }
+        ConfirmationDialog.show(
+                "Delete selection",
+                "Are you sure you want to delete the selected channels?",
+                new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        try {
+                            Database.deleteChannels(getSelection());
+                            showChannel(true);
+                        } catch (SQLException | ClassNotFoundException
+                                | ExceptionHandler e) {
+                            ExceptionDialog.show(e);
+                            LOGGER.error(e);
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -94,11 +204,18 @@ public class Manager implements Initializable {
      * @param actionEvent Event that triggered the method
      * @param channel     Channel to edit
      */
+    @FXML
     public final void onEditChannelClicked(final ActionEvent actionEvent,
                                            final Channel channel) {
         Button btn = (Button) actionEvent.getSource();
         btn.setDisable(true);
-        EditChannelDialog.show(this, btn, channel);
+        try {
+            EditChannelDialog.show(this, btn, channel);
+        } catch (IOException e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -106,49 +223,65 @@ public class Manager implements Initializable {
      *
      * @param channel Channel to delete
      */
+    @FXML
     public final void onDeleteChannelClicked(final Channel channel) {
-        try {
-            Database.deleteChannel(channel.getId());
-            showChannel(true);
-        } catch (SQLException | ClassNotFoundException e) {
-            LOGGER.error(e);
-            showExceptionDialog(e);
-        }
+        ConfirmationDialog.show(
+                "Delete channel",
+                "Are you sure you want to delete the channel?",
+                new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        try {
+                            Database.deleteChannel(channel.getId());
+                            showChannel(true);
+                        } catch (SQLException | ClassNotFoundException
+                                | ExceptionHandler e) {
+                            ExceptionDialog.show(e);
+                            LOGGER.error(e);
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                });
     }
 
     /**
      * Triggered when a channel is added.
      *
-     * @param name Channel name
-     * @param url  Channel URL
+     * @param name  Channel name
+     * @param urlId Channel id in URL
      */
-    public final void onChannelAdded(final String name, final String url) {
+    public final void onChannelAdded(final String name, final String urlId) {
         // Add channel to database
         try {
-            Database.insertChannel(name, url);
+            Database.insertChannel(name, Channel.getBaseUrl() + urlId);
             showChannel(true);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler
+                | IOException e) {
+            ExceptionDialog.show(e);
             LOGGER.error(e);
-            showExceptionDialog(e);
+            e.printStackTrace();
         }
     }
 
     /**
      * Triggered when a channel is edited.
      *
-     * @param id   Channel id
-     * @param name Channel name
-     * @param url  Channel URL
+     * @param id    Channel id
+     * @param name  Channel name
+     * @param urlId Channel id in URL
      */
     public final void onChannelEdited(final int id, final String name,
-                                      final String url) {
+                                      final String urlId) {
         // Update channel in database
         try {
-            Database.updateChannel(id, name, url);
+            Database.updateChannel(id, name, Channel.getBaseUrl() + urlId);
             showChannel(true);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler
+                | IOException e) {
+            ExceptionDialog.show(e);
             LOGGER.error(e);
-            showExceptionDialog(e);
+            e.printStackTrace();
         }
     }
 
@@ -159,17 +292,16 @@ public class Manager implements Initializable {
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           Exception while executing the select
      *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
      */
     private void showChannel(final boolean refresh)
-            throws ClassNotFoundException, SQLException {
-        mVBoxChannel.getChildren().clear();
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
         if (refresh) {
             mChannelList = Database.getAllChannels();
+            mCheckBoxAll.setSelected(false);
         }
-        for (Channel channel : mChannelList) {
-            mVBoxChannel.getChildren().add(
-                    new ChannelManagerPane(this, channel));
-        }
+        mScrollPaneChannel.setContent(
+                new ChannelPane(this, mChannelList));
     }
 
     /**
@@ -189,28 +321,11 @@ public class Manager implements Initializable {
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           Exception while executing the select
      *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
      */
     private List<Channel> collectChannels() throws ClassNotFoundException,
-            SQLException {
+            SQLException, ExceptionHandler {
         return Database.getAllChannels();
-    }
-
-    /**
-     * Select all the channels.
-     *
-     * @param actionEvent Event that triggered the method
-     */
-    public final void onSelectAll(final ActionEvent actionEvent) {
-        CheckBox checkBox = (CheckBox) actionEvent.getSource();
-        for (Channel channel : mChannelList) {
-            channel.setChecked(checkBox.isSelected());
-        }
-        try {
-            showChannel(false);
-        } catch (SQLException | ClassNotFoundException e) {
-            LOGGER.error(e);
-            showExceptionDialog(e);
-        }
     }
 
     /**
@@ -223,39 +338,11 @@ public class Manager implements Initializable {
     }
 
     /**
-     * Show a dialog displaying the exception that occurred.
+     * Set the stage.
      *
-     * @param exception Exception to display
+     * @param stage Stage to set
      */
-    private void showExceptionDialog(final Exception exception) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(exception.getMessage());
-
-        // Create expandable Exception.
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        exception.printStackTrace(pw);
-        String exceptionText = sw.toString();
-
-        Label label = new Label("The exception stacktrace was:");
-
-        TextArea textArea = new TextArea(exceptionText);
-        textArea.setEditable(false);
-        textArea.setWrapText(true);
-
-        GridPane.setVgrow(textArea, Priority.ALWAYS);
-        GridPane.setHgrow(textArea, Priority.ALWAYS);
-
-        GridPane expContent = new GridPane();
-        expContent.add(label, 0, 0);
-        expContent.add(textArea, 0, 1);
-
-        // Set expandable Exception into the dialog pane.
-        alert.getDialogPane().setExpandableContent(expContent);
-        alert.getDialogPane().setPrefWidth(WIDTH);
-
-        alert.showAndWait();
+    public final void setStage(final Stage stage) {
+        mStage = stage;
     }
 }

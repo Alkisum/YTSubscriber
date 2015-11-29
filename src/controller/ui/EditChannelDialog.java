@@ -1,42 +1,51 @@
-package controller;
+package controller.ui;
 
+import controller.Manager;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
+import model.Channel;
 
+import java.io.IOException;
 import java.util.Optional;
 
 /**
- * Dialog to add a channel.
+ * Dialog to edit a channel.
+ *
  * @author Alkisum
  * @version 1.0
  * @since 19/04/15.
  */
-public final class AddChannelDialog {
+public final class EditChannelDialog {
 
     /**
-     * AddChannelDialog constructor.
+     * EditChannelDialog constructor.
      */
-    private AddChannelDialog() {
+    private EditChannelDialog() {
 
     }
 
     /**
      * Show the dialog.
-     * @param manager Manager instance
-     * @param btn Button that triggered the dialog
+     *
+     * @param manager  Manager instance
+     * @param btn      Button that triggered the dialog
+     * @param pChannel Channel to edit
+     * @throws IOException The properties file has not been found
      */
-    public static void show(final Manager manager, final Button btn) {
+    public static void show(final Manager manager, final Button btn,
+                            final Channel pChannel) throws IOException {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Add Channel");
+        dialog.setTitle("Edit Channel");
 
         // Set the button types.
         dialog.getDialogPane().getButtonTypes().addAll(
@@ -46,25 +55,27 @@ public final class AddChannelDialog {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.setPadding(new Insets(20, 10, 10, 10));
 
-        TextField name = new TextField();
-        TextField url = new TextField();
+        TextField name = new TextField(pChannel.getName());
+        TextField urlId = new TextField(
+                pChannel.getUrl().replace(Channel.getBaseUrl(), ""));
+        urlId.setTooltip(new Tooltip("Identifier following "
+                + "\"https://www.youtube.com/channel/\""));
 
         grid.add(new Label("Name:"), 0, 0);
         grid.add(name, 1, 0);
-        grid.add(new Label("URL:"), 0, 1);
-        grid.add(url, 1, 1);
+        grid.add(new Label("ID:"), 0, 1);
+        grid.add(urlId, 1, 1);
 
         Node applyButton = dialog.getDialogPane().lookupButton(ButtonType.OK);
-        applyButton.setDisable(true);
 
         // Do some validation (using the Java 8 lambda syntax).
         name.textProperty().addListener((observable, oldValue, newValue) -> {
             applyButton.setDisable(newValue.trim().isEmpty()
-                    || url.getText().isEmpty());
+                    || urlId.getText().isEmpty());
         });
-        url.textProperty().addListener((observable, oldValue, newValue) -> {
+        urlId.textProperty().addListener((observable, oldValue, newValue) -> {
             applyButton.setDisable(newValue.trim().isEmpty()
                     || name.getText().isEmpty());
         });
@@ -79,14 +90,14 @@ public final class AddChannelDialog {
         dialog.setResultConverter(dialogButton -> {
             manager.enableButton(btn);
             if (dialogButton == ButtonType.OK) {
-                return new Pair<>(name.getText(), url.getText());
+                return new Pair<>(name.getText(), urlId.getText());
             }
             return null;
         });
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
-        result.ifPresent(channel -> manager.onChannelAdded(
-                channel.getKey(), channel.getValue()));
+        result.ifPresent(channel -> manager.onChannelEdited(
+                pChannel.getId(), channel.getKey(), channel.getValue()));
     }
 }

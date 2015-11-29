@@ -5,65 +5,92 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
 <GridPane fx:controller="controller.Manager"
-          xmlns:fx="http://javafx.com/fxml">
+          xmlns:fx="http://javafx.com/fxml"
+          stylesheets="/view/manager.css">
 
     <GridPane GridPane.columnIndex="0"
               GridPane.rowIndex="0"
               GridPane.hgrow="ALWAYS"
-              hgap="5"
+              GridPane.columnSpan="2"
+              hgap="10"
               vgap="5">
 
         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            <Insets bottom="5.0" left="11.0" right="27.0" top="5.0"/>
         </padding>
 
-        <CheckBox
-                GridPane.columnIndex="0"
-                GridPane.rowIndex="0"
-                GridPane.hgrow="ALWAYS"
-                onAction="#onSelectAll"/>
+        <CheckBox fx:id="mCheckBoxAll"
+                  GridPane.columnIndex="0"
+                  GridPane.rowIndex="0"
+                  GridPane.hgrow="ALWAYS"
+                  onAction="#onSelectAll"/>
 
-        <Button text="Add channel"
-                GridPane.columnIndex="1"
+        <Button GridPane.columnIndex="1"
                 GridPane.rowIndex="0"
-                onAction="#onAddChannelClicked">
+                onAction="#onImportClicked">
+            <tooltip>
+                <Tooltip text="Import channels from OPML file"/>
+            </tooltip>
             <graphic>
                 <ImageView>
-                    <Image url="@icons/ic_add_black_18dp.png"/>
+                    <Image url="@icons/ic_file_download_grey_18dp.png"/>
                 </ImageView>
             </graphic>
         </Button>
 
-        <Button text="Delete selection"
-                GridPane.columnIndex="2"
+        <Button GridPane.columnIndex="2"
                 GridPane.rowIndex="0"
-                onAction="#onDeleteSelectionClicked">
+                onAction="#onAddChannelClicked">
+            <tooltip>
+                <Tooltip text="Add a new channel"/>
+            </tooltip>
             <graphic>
                 <ImageView>
-                    <Image url="@icons/ic_delete_black_18dp.png"/>
+                    <Image url="@icons/ic_add_grey_18dp.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
+        <Button GridPane.columnIndex="3"
+                GridPane.rowIndex="0"
+                onAction="#onDeleteSelectionClicked">
+            <tooltip>
+                <Tooltip text="Delete the selected channels"/>
+            </tooltip>
+            <graphic>
+                <ImageView>
+                    <Image url="@icons/ic_delete_grey_18dp.png"/>
                 </ImageView>
             </graphic>
         </Button>
 
     </GridPane>
 
-    <ScrollPane GridPane.columnIndex="0"
+    <ScrollPane fx:id="mScrollPaneChannel"
+                GridPane.columnIndex="0"
                 GridPane.rowIndex="1"
-                GridPane.columnSpan="3"
-                fitToHeight="true"
-                fitToWidth="true">
+                GridPane.columnSpan="2"
+                vbarPolicy="ALWAYS"
+                hbarPolicy="NEVER"
+                GridPane.hgrow="ALWAYS"
+                GridPane.vgrow="ALWAYS"
+                fitToWidth="true"/>
 
-        <VBox fx:id="mVBoxChannel"
-              GridPane.hgrow="ALWAYS"
-              GridPane.vgrow="ALWAYS">
+    <Label fx:id="mProgressMessage"
+           styleClass="progress-message"
+           GridPane.columnIndex="0"
+           GridPane.rowIndex="2"
+           GridPane.hgrow="ALWAYS"/>
 
-            <padding>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-            </padding>
-
-        </VBox>
-
-    </ScrollPane>
+    <ProgressBar fx:id="mProgressBar"
+                 styleClass="progress-bar"
+                 GridPane.columnIndex="1"
+                 GridPane.rowIndex="2"
+                 progress="0"
+                 prefWidth="200"/>
 
 </GridPane>

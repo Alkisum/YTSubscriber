@@ -33,5 +33,18 @@
         <jarDirectory url="file://$MODULE_DIR$/lib/log4j" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib/prettytime" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/lib/prettytime" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/lib/prettytime" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/prettytime" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
   </component>
 </module>
