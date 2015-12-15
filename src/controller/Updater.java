@@ -6,6 +6,7 @@ import controller.ui.ExceptionDialog;
 import controller.ui.VideoPane;
 import database.Database;
 import exception.ExceptionHandler;
+import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -19,6 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import model.Channel;
 import model.Video;
@@ -50,6 +52,11 @@ public class Updater implements Initializable {
      * Frame dimensions.
      */
     public static final int WIDTH = 800, HEIGHT = 600;
+
+    /**
+     * Application instance.
+     */
+    private Application mApplication;
 
     /**
      * List of videos shown in Video's scroll pane.
@@ -125,6 +132,8 @@ public class Updater implements Initializable {
                     getClass().getResource("/view/manager.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Channel Manager");
+            stage.getIcons().add(new Image(
+                    getClass().getResourceAsStream("/view/icons/app.png")));
             stage.setScene(new Scene(loader.load(),
                     Manager.WIDTH, Manager.HEIGHT));
             Manager manager = loader.getController();
@@ -174,6 +183,7 @@ public class Updater implements Initializable {
 
         mProgressMessage.textProperty().bind(rssReader.messageProperty());
         mProgressBar.progressProperty().bind(rssReader.progressProperty());
+        mProgressBar.setVisible(true);
 
         new Thread(rssReader).start();
 
@@ -182,6 +192,7 @@ public class Updater implements Initializable {
             mProgressBar.progressProperty().unbind();
             mProgressMessage.setText("");
             mProgressBar.setProgress(0);
+            mProgressBar.setVisible(false);
             refreshChannelList();
         });
 
@@ -192,6 +203,7 @@ public class Updater implements Initializable {
                 mProgressBar.progressProperty().unbind();
                 mProgressMessage.setText("");
                 mProgressBar.setProgress(0);
+                mProgressBar.setVisible(false);
                 throw finalRssReader.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -299,5 +311,19 @@ public class Updater implements Initializable {
     private void refreshVideoList() {
         mScrollPaneVideo.setContent(new VideoPane(mVideosShown, this,
                 mProgressMessage, mProgressBar));
+    }
+
+    /**
+     * @return Application instance
+     */
+    public final Application getApplication() {
+        return mApplication;
+    }
+
+    /**
+     * @param application Application instance to set
+     */
+    public final void setApplication(final Application application) {
+        mApplication = application;
     }
 }

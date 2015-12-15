@@ -65,6 +65,12 @@ public class VideoPane extends GridPane {
             "/view/icons/ic_visibility_grey_18dp.png";
 
     /**
+     * Icon for YouTube link.
+     */
+    private static final String YOUTUBE =
+            "/view/icons/ic_youtube_grey_18dp.png";
+
+    /**
      * Number of rows for each video pane.
      */
     private static final int ROW_COUNT = 4;
@@ -133,6 +139,7 @@ public class VideoPane extends GridPane {
 
         mProgressMessage.textProperty().bind(task.messageProperty());
         mProgressBar.progressProperty().bind(task.progressProperty());
+        mProgressBar.setVisible(true);
 
         new Thread(task).start();
 
@@ -141,6 +148,7 @@ public class VideoPane extends GridPane {
             mProgressBar.progressProperty().unbind();
             mProgressMessage.setText("");
             mProgressBar.setProgress(0);
+            mProgressBar.setVisible(false);
         });
 
         task.setOnFailed(t -> {
@@ -149,6 +157,7 @@ public class VideoPane extends GridPane {
                 mProgressBar.progressProperty().unbind();
                 mProgressMessage.setText("");
                 mProgressBar.setProgress(0);
+                mProgressBar.setVisible(false);
                 throw task.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -180,6 +189,7 @@ public class VideoPane extends GridPane {
         setRowSpan(play, 3);
         play.setVisible(false);
         play.setOnMouseExited(event -> play.setVisible(false));
+        play.setOnMouseClicked(event -> playVideo(video));
 
         // Thumbnail
         ImageView thumbnail;
@@ -197,14 +207,13 @@ public class VideoPane extends GridPane {
         }
         thumbnail.setStyle("-fx-cursor: hand;");
         thumbnail.setOnMouseEntered(event -> play.setVisible(true));
-        thumbnail.setOnMouseClicked(event -> playVideo(video));
         setRowSpan(thumbnail, 3);
 
         // Title
         Label title = new Label(video.getTitle());
         title.setStyle("-fx-font-weight: bold");
         title.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(title, 2);
+        setColumnSpan(title, 3);
         setHgrow(title, Priority.ALWAYS);
         setVgrow(title, Priority.ALWAYS);
 
@@ -212,7 +221,7 @@ public class VideoPane extends GridPane {
         Label channelName = new Label("by " + Database.getChannelNameById(
                 video.getChannelId()));
         channelName.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(channelName, 2);
+        setColumnSpan(channelName, 3);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
 
@@ -224,6 +233,15 @@ public class VideoPane extends GridPane {
         setHgrow(date, Priority.ALWAYS);
         setVgrow(date, Priority.ALWAYS);
 
+        // YouTube
+        ImageView youtube = new ImageView(new Image(
+                getClass().getResourceAsStream(YOUTUBE)));
+        setVgrow(youtube, Priority.ALWAYS);
+        youtube.setStyle("-fx-cursor: hand;");
+        youtube.setOnMouseClicked(
+                event -> mUpdater.getApplication().getHostServices()
+                        .showDocument(video.getUrl()));
+
         // Watch
         Image image;
         if (video.isWatched()) {
@@ -232,14 +250,13 @@ public class VideoPane extends GridPane {
             image = new Image(getClass().getResourceAsStream(UNWATCHED));
         }
         ImageView watched = new ImageView(image);
-        setVgrow(watched, Priority.ALWAYS);
         watched.setStyle("-fx-cursor: hand;");
         watched.setOnMouseClicked(
                 event -> updateVideoWatchedState(video, watched));
 
         // Separator
         Separator separator = new Separator(Orientation.HORIZONTAL);
-        setColumnSpan(separator, 3);
+        setColumnSpan(separator, 4);
         setHgrow(separator, Priority.ALWAYS);
 
         Platform.runLater(() -> {
@@ -249,7 +266,8 @@ public class VideoPane extends GridPane {
             add(title, 1, row++);
             add(channelName, 1, row++);
             add(date, 1, row);
-            add(watched, 2, row++);
+            add(youtube, 2, row);
+            add(watched, 3, row++);
             add(separator, 0, row++);
         });
     }
@@ -260,19 +278,25 @@ public class VideoPane extends GridPane {
      * @param video Video to play
      */
     private static void playVideo(final Video video) {
-        Process p = null;
+        Process process = null;
         try {
-            // TODO Test, destroy, what if not installed?
-            p = Runtime.getRuntime().exec(
+            process = Runtime.getRuntime().exec(
                     "livestreamer " + video.getUrl() + " best");
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
+            process.waitFor();
+        } catch (InterruptedException e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
+        } catch (IOException e) {
+            ErrorDialog.show("Livestreamer not found",
+                    "Livestreamer cannot be found on your system."
+                            + "\nPlease, make sure Livestreamer is installed."
+                            + "\n(http://docs.livestreamer.io/)");
+            LOGGER.error(e);
+            e.printStackTrace();
         } finally {
-            if (p != null) {
-                p.destroy();
+            if (process != null) {
+                process.destroy();
             }
         }
     }

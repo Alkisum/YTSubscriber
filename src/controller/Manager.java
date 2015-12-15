@@ -129,6 +129,7 @@ public class Manager implements Initializable {
         OpmlReader opmlReader = new OpmlReader(selectedFile);
         mProgressMessage.textProperty().bind(opmlReader.messageProperty());
         mProgressBar.progressProperty().bind(opmlReader.progressProperty());
+        mProgressBar.setVisible(true);
 
         new Thread(opmlReader).start();
         opmlReader.setOnSucceeded(t -> {
@@ -137,6 +138,7 @@ public class Manager implements Initializable {
                 mProgressBar.progressProperty().unbind();
                 mProgressMessage.setText("");
                 mProgressBar.setProgress(0);
+                mProgressBar.setVisible(false);
                 showChannel(true);
             } catch (ClassNotFoundException | SQLException
                     | ExceptionHandler e) {
@@ -152,6 +154,7 @@ public class Manager implements Initializable {
                 mProgressBar.progressProperty().unbind();
                 mProgressMessage.setText("");
                 mProgressBar.setProgress(0);
+                mProgressBar.setVisible(false);
                 throw opmlReader.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
