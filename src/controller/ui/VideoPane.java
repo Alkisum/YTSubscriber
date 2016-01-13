@@ -278,27 +278,34 @@ public class VideoPane extends GridPane {
      * @param video Video to play
      */
     private static void playVideo(final Video video) {
-        Process process = null;
-        try {
-            process = Runtime.getRuntime().exec(
-                    "livestreamer " + video.getUrl() + " best");
-            process.waitFor();
-        } catch (InterruptedException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        } catch (IOException e) {
-            ErrorDialog.show("Livestreamer not found",
-                    "Livestreamer cannot be found on your system."
-                            + "\nPlease, make sure Livestreamer is installed."
-                            + "\n(http://docs.livestreamer.io/)");
-            LOGGER.error(e);
-            e.printStackTrace();
-        } finally {
-            if (process != null) {
-                process.destroy();
+        new Thread(new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                Process process = null;
+                try {
+                    process = Runtime.getRuntime().exec(
+                            "livestreamer " + video.getUrl() + " best");
+                    process.waitFor();
+                } catch (InterruptedException e) {
+                    ExceptionDialog.show(e);
+                    LOGGER.error(e);
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    ErrorDialog.show("Livestreamer not found",
+                            "Livestreamer cannot be found on your system."
+                                    + "\nPlease, make sure Livestreamer is "
+                                    + "installed."
+                                    + "\n(http://docs.livestreamer.io/)");
+                    LOGGER.error(e);
+                    e.printStackTrace();
+                } finally {
+                    if (process != null) {
+                        process.destroy();
+                    }
+                }
+                return null;
             }
-        }
+        }).start();
     }
 
     /**
