@@ -127,10 +127,11 @@ public class Channel {
      * @throws IOException The properties file has not been found
      */
     public static String getBaseUrl() throws IOException {
+        Config.createFile();
         Properties prop = new Properties();
-        try (InputStream input = new FileInputStream(Config.CONFIG_FILE)) {
+        try (InputStream input = new FileInputStream(Config.CONFIG_FILE_PATH)) {
             prop.load(input);
-            return prop.getProperty(Config.PROP_CHANNEL_URL);
+            return prop.getProperty(Config.PROP_CHANNEL_URL_KEY);
         }
     }
 }
