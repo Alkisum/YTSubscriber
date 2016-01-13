@@ -379,6 +379,25 @@ public final class Database {
     }
 
     /**
+     * Count the number of unwatched videos.
+     *
+     * @return Number of unwatched videos
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the select
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static int countUnwatchedVideos()
+            throws SQLException, ClassNotFoundException, ExceptionHandler {
+        try (Connection c = getConnection();
+             PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) "
+                     + "AS unwatched FROM Video WHERE video_watched=0;")) {
+            ResultSet rs = stmt.executeQuery();
+            return rs.getInt("unwatched");
+        }
+    }
+
+    /**
      * Count the number of unwatched videos by channel.
      *
      * @param channelId Channel id

@@ -11,8 +11,8 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 
 ## Installation
 
-+ Download the project or only the YTSubscriber-1.0.jar file under the *release* directory
-+ Run YTSubscriber-1.0.jar 
++ Download the project or only the YTSubscriber-x.x.jar file under the *release* directory
++ Run YTSubscriber-x.x.jar 
 
 
 ## Usage

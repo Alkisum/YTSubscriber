@@ -87,6 +87,12 @@ public class Updater implements Initializable {
     @FXML
     private ListView<Channel> mListViewChannel;
 
+    /**
+     * Button to show all the unwatched videos.
+     */
+    @FXML
+    private Button mButtonSubscriptions;
+
     @Override
     public final void initialize(final URL location,
                                  final ResourceBundle resources) {
@@ -97,6 +103,8 @@ public class Updater implements Initializable {
             refreshChannelList();
             // Initialize video list
             mVideosShown = Database.getUnwatchedVideos();
+            mButtonSubscriptions.setText("Subscriptions ("
+                    + mVideosShown.size() + ")");
             refreshVideoList();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
@@ -113,6 +121,7 @@ public class Updater implements Initializable {
         try {
             mVideosShown = Database.getUnwatchedVideos();
             refreshVideoList();
+            mListViewChannel.getSelectionModel().clearSelection();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
@@ -194,6 +203,15 @@ public class Updater implements Initializable {
             mProgressBar.setProgress(0);
             mProgressBar.setVisible(false);
             refreshChannelList();
+            try {
+                mButtonSubscriptions.setText("Subscriptions ("
+                        + Database.countUnwatchedVideos() + ")");
+            } catch (ClassNotFoundException | SQLException
+                    | ExceptionHandler e) {
+                ExceptionDialog.show(e);
+                LOGGER.error(e);
+                e.printStackTrace();
+            }
         });
 
         final RssReader finalRssReader = rssReader;

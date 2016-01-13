@@ -27,7 +27,8 @@
                 <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
             </padding>
 
-            <Button text="Subscriptions"
+            <Button fx:id="mButtonSubscriptions"
+                    text="Subscriptions"
                     prefHeight="28"
                     GridPane.columnIndex="0"
                     GridPane.rowIndex="0"
