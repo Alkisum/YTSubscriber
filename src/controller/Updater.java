@@ -98,7 +98,7 @@ public class Updater implements Initializable {
                                  final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
-            Database.create();
+            Database.init();
             // Initialize channel list
             refreshChannelList();
             // Initialize video list
@@ -203,15 +203,6 @@ public class Updater implements Initializable {
             mProgressBar.setProgress(0);
             mProgressBar.setVisible(false);
             refreshChannelList();
-            try {
-                mButtonSubscriptions.setText("Subscriptions ("
-                        + Database.countUnwatchedVideos() + ")");
-            } catch (ClassNotFoundException | SQLException
-                    | ExceptionHandler e) {
-                ExceptionDialog.show(e);
-                LOGGER.error(e);
-                e.printStackTrace();
-            }
         });
 
         final RssReader finalRssReader = rssReader;
@@ -316,6 +307,8 @@ public class Updater implements Initializable {
             List<Channel> channels = Database.getAllChannels();
             items.addAll(channels.stream().collect(Collectors.toList()));
             mListViewChannel.setItems(items);
+            mButtonSubscriptions.setText("Subscriptions ("
+                    + Database.countUnwatchedVideos() + ")");
         } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);

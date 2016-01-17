@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -38,7 +39,6 @@ public final class Database {
      * Logger.
      */
     private static final Logger LOGGER = LogManager.getLogger(Database.class);
-
 
     /**
      * Database file.
@@ -65,15 +65,17 @@ public final class Database {
     }
 
     /**
-     * Create database.
+     * Initialize database by creating tables (if they don't exist) and by
+     * updating the tables (if necessary).
      *
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           SQL Exception
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public static void create() throws ClassNotFoundException, SQLException,
+    public static void init() throws ClassNotFoundException, SQLException,
             ExceptionHandler {
         createTables();
+        updateTables();
     }
 
     /**
@@ -110,22 +112,46 @@ public final class Database {
              Statement stmt = c.createStatement()) {
             // Check if tables already exist
             String sql = "CREATE TABLE IF NOT EXISTS Channel"
-                    + "(channel_id   INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + " channel_name TEXT            NOT NULL,"
-                    + " channel_url  TEXT            NOT NULL);";
+                    + "(channel_id         INT  PRIMARY KEY AUTOINCREMENT,"
+                    + " channel_name       TEXT NOT NULL,"
+                    + " channel_url        TEXT NOT NULL,"
+                    + " channel_subscribed INT  NOT NULL);";
             stmt.executeUpdate(sql);
             sql = "CREATE TABLE IF NOT EXISTS Video"
-                    + "(video_id            INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + " video_title         TEXT            NOT NULL,"
-                    + " video_url           TEXT            NOT NULL,"
-                    + " video_date          TEXT            NOT NULL,"
-                    + " video_thumbnail_url TEXT            NOT NULL,"
-                    + " video_watched       INT             NOT NULL,"
-                    + " video_channel_id    INT             NOT NULL,"
+                    + "(video_id            INT  PRIMARY KEY AUTOINCREMENT,"
+                    + " video_title         TEXT NOT NULL,"
+                    + " video_url           TEXT NOT NULL,"
+                    + " video_date          TEXT NOT NULL,"
+                    + " video_thumbnail_url TEXT NOT NULL,"
+                    + " video_watched       INT  NOT NULL,"
+                    + " video_channel_id    INT  NOT NULL,"
                     + " FOREIGN KEY(video_channel_id)"
                     + " REFERENCES Channel(channel_id));";
             stmt.executeUpdate(sql);
+        }
+    }
 
+    /**
+     * Updates table in database. Will be used when upgrading to a newer version
+     * with changes in the database structure.
+     *
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    private static void updateTables()
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
+        try (Connection c = getConnection();
+             Statement stmt = c.createStatement()) {
+            DatabaseMetaData md = c.getMetaData();
+            ResultSet rs = md.getColumns(
+                    null, null, "Channel", "channel_subscribed");
+            if (!rs.next()) {
+                LOGGER.error("Update table");
+                String sql = "ALTER TABLE Channel ADD COLUMN channel_subscribed"
+                        + " INT DEFAULT 1;";
+                stmt.executeUpdate(sql);
+            }
         }
     }
 
@@ -170,7 +196,8 @@ public final class Database {
                         new Channel(
                                 rs.getInt("channel_id"),
                                 rs.getString("channel_name"),
-                                rs.getString("channel_url")
+                                rs.getString("channel_url"),
+                                rs.getBoolean("channel_subscribed")
                         )
                 );
             }
@@ -181,21 +208,24 @@ public final class Database {
     /**
      * Insert channel to database.
      *
-     * @param name Channel name
-     * @param url  Channel URL
+     * @param name       Channel name
+     * @param url        Channel URL
+     * @param subscribed Channel subscribed flag
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           Exception while executing the insert
      *                                statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public static void insertChannel(final String name, final String url)
+    public static void insertChannel(final String name, final String url,
+                                     final boolean subscribed)
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
-                     "INSERT INTO Channel (channel_name, channel_url)"
-                             + " VALUES (?, ?);")) {
+                     "INSERT INTO Channel (channel_name, channel_url, "
+                             + "channel_subscribed) VALUES (?, ?, ?);")) {
             stmt.setString(1, name);
             stmt.setString(2, url);
+            stmt.setBoolean(3, subscribed);
             stmt.executeUpdate();
         }
     }
@@ -216,11 +246,34 @@ public final class Database {
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Channel SET channel_name=?, channel_url=?"
+                     "UPDATE Channel SET channel_name=?, channel_url=? "
                              + "WHERE channel_id=?;")) {
             stmt.setString(1, name);
             stmt.setString(2, url);
             stmt.setInt(3, id);
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * Update the channel subscribed flag in database.
+     *
+     * @param id         Channel id
+     * @param subscribed Channel subscribed flag
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the update
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static void updateChannelSubscription(final int id,
+                                                 final boolean subscribed)
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
+        try (Connection c = getConnection();
+             PreparedStatement stmt = c.prepareStatement(
+                     "UPDATE Channel SET channel_subscribed=? "
+                             + "WHERE channel_id=?;")) {
+            stmt.setBoolean(1, subscribed);
+            stmt.setInt(2, id);
             stmt.executeUpdate();
         }
     }
@@ -372,8 +425,11 @@ public final class Database {
             throws SQLException, ClassNotFoundException, ExceptionHandler {
         try (Connection c = getConnection();
              Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM Video "
-                     + "WHERE video_watched = 0 ORDER BY video_date DESC;")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM Video, Channel "
+                     + "WHERE video_channel_id=channel_id "
+                     + "AND video_watched=0 "
+                     + "AND channel_subscribed=1 "
+                     + "ORDER BY video_date DESC;")) {
             return buildVideoListFromResultSet(rs);
         }
     }
@@ -391,7 +447,10 @@ public final class Database {
             throws SQLException, ClassNotFoundException, ExceptionHandler {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) "
-                     + "AS unwatched FROM Video WHERE video_watched=0;")) {
+                     + "AS unwatched FROM Video, Channel "
+                     + "WHERE video_channel_id=channel_id "
+                     + "AND video_watched=0 "
+                     + "AND channel_subscribed=1;")) {
             ResultSet rs = stmt.executeQuery();
             return rs.getInt("unwatched");
         }
@@ -435,11 +494,7 @@ public final class Database {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
                      "UPDATE Video SET video_watched=? WHERE video_id=?;")) {
-            if (watched) {
-                stmt.setInt(1, 1);
-            } else {
-                stmt.setInt(1, 0);
-            }
+            stmt.setBoolean(1, watched);
             stmt.setInt(2, video.getId());
             stmt.executeUpdate();
         }
@@ -460,11 +515,7 @@ public final class Database {
              PreparedStatement stmt = c.prepareStatement(
                      "UPDATE Video SET video_watched=?;")) {
             LOGGER.debug("Update video watched: " + watched);
-            if (watched) {
-                stmt.setInt(1, 1);
-            } else {
-                stmt.setInt(1, 0);
-            }
+            stmt.setBoolean(1, watched);
             stmt.executeUpdate();
         }
     }

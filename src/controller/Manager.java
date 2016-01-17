@@ -202,12 +202,29 @@ public class Manager implements Initializable {
     }
 
     /**
+     * Triggered when the user clicks on the enable / disable subscription
+     * button.
+     *
+     * @param channel Channel to update
+     */
+    public final void onSetChannelSubscriptionClicked(final Channel channel) {
+        try {
+            Database.updateChannelSubscription(channel.getId(),
+                    !channel.isSubscribed());
+            showChannel(true);
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Triggered when the user clicks on the edit channel button.
      *
      * @param actionEvent Event that triggered the method
      * @param channel     Channel to edit
      */
-    @FXML
     public final void onEditChannelClicked(final ActionEvent actionEvent,
                                            final Channel channel) {
         Button btn = (Button) actionEvent.getSource();
@@ -226,7 +243,6 @@ public class Manager implements Initializable {
      *
      * @param channel Channel to delete
      */
-    @FXML
     public final void onDeleteChannelClicked(final Channel channel) {
         ConfirmationDialog.show(
                 "Delete channel",
@@ -255,9 +271,8 @@ public class Manager implements Initializable {
      * @param urlId Channel id in URL
      */
     public final void onChannelAdded(final String name, final String urlId) {
-        // Add channel to database
         try {
-            Database.insertChannel(name, Channel.getBaseUrl() + urlId);
+            Database.insertChannel(name, Channel.getBaseUrl() + urlId, true);
             showChannel(true);
         } catch (SQLException | ClassNotFoundException | ExceptionHandler
                 | IOException e) {
@@ -276,7 +291,6 @@ public class Manager implements Initializable {
      */
     public final void onChannelEdited(final int id, final String name,
                                       final String urlId) {
-        // Update channel in database
         try {
             Database.updateChannel(id, name, Channel.getBaseUrl() + urlId);
             showChannel(true);

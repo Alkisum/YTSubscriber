@@ -3,6 +3,8 @@ package model;
 import config.Config;
 import database.Database;
 import exception.ExceptionHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,6 +23,11 @@ import java.util.Properties;
 public class Channel {
 
     /**
+     * Logger.
+     */
+    private static final Logger LOGGER = LogManager.getLogger(Channel.class);
+
+    /**
      * Channel id.
      */
     private final int mId;
@@ -36,6 +43,11 @@ public class Channel {
     private final String mUrl;
 
     /**
+     * Channel subscribed flag.
+     */
+    private boolean mSubscribed;
+
+    /**
      * The channel is selected ini the manager list.
      */
     private boolean mChecked;
@@ -43,14 +55,17 @@ public class Channel {
     /**
      * Channel constructor.
      *
-     * @param id   Channel id
-     * @param name Channel name
-     * @param url  Channel URL
+     * @param id         Channel id
+     * @param name       Channel name
+     * @param url        Channel URL
+     * @param subscribed Channel subscribed flag
      */
-    public Channel(final int id, final String name, final String url) {
+    public Channel(final int id, final String name, final String url,
+                   final boolean subscribed) {
         mId = id;
         mName = name;
         mUrl = url;
+        mSubscribed = subscribed;
         mChecked = false;
     }
 
@@ -60,7 +75,7 @@ public class Channel {
             return mName
                     + " (" + Database.countUnwatchedVideosByChannel(mId) + ")";
         } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            // TODO Handle exception
+            LOGGER.error(e);
             e.printStackTrace();
         }
         return "";
@@ -104,6 +119,13 @@ public class Channel {
      */
     public final String getUrl() {
         return mUrl;
+    }
+
+    /**
+     * @return Channel subscribed flag
+     */
+    public final boolean isSubscribed() {
+        return mSubscribed;
     }
 
     /**

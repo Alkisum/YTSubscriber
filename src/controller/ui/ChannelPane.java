@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
@@ -75,23 +76,45 @@ public class ChannelPane extends GridPane {
             Label labelURL = new Label(channel.getUrl());
             add(labelURL, 2, row);
 
+            // Subscribed button
+            Button buttonSubscribed = new Button();
+            String subPath;
+            Tooltip tooltip;
+            if (channel.isSubscribed()) {
+                tooltip = new Tooltip("Disable subscription");
+                subPath = "/view/icons/ic_subscriptions_off_grey_18dp.png";
+            } else {
+                tooltip = new Tooltip("Enable subscription");
+                subPath = "/view/icons/ic_subscriptions_grey_18dp.png";
+            }
+            buttonSubscribed.setTooltip(tooltip);
+            Image imageSubscribed = new Image(getClass().getResourceAsStream(
+                    subPath));
+            buttonSubscribed.setGraphic(new ImageView(imageSubscribed));
+            buttonSubscribed.setOnAction(
+                    (event) -> mManager.onSetChannelSubscriptionClicked(
+                            channel));
+            add(buttonSubscribed, 3, row);
+
             // Edit button
             Button buttonEdit = new Button();
+            buttonEdit.setTooltip(new Tooltip("Edit channel"));
             Image imageEdit = new Image(getClass().getResourceAsStream(
                     "/view/icons/ic_edit_grey_18dp.png"));
             buttonEdit.setGraphic(new ImageView(imageEdit));
             buttonEdit.setOnAction(
                     (event) -> mManager.onEditChannelClicked(event, channel));
-            add(buttonEdit, 3, row);
+            add(buttonEdit, 4, row);
 
             // Delete button
             Button buttonDelete = new Button();
+            buttonDelete.setTooltip(new Tooltip("Delete channel"));
             Image imageDelete = new Image(getClass().getResourceAsStream(
                     "/view/icons/ic_delete_grey_18dp.png"));
             buttonDelete.setGraphic(new ImageView(imageDelete));
             buttonDelete.setOnAction(
                     (event) -> mManager.onDeleteChannelClicked(channel));
-            add(buttonDelete, 4, row);
+            add(buttonDelete, 5, row);
         }
         ColumnConstraints checkBoxConstraint = new ColumnConstraints();
         checkBoxConstraint.setHgrow(Priority.NEVER);
@@ -100,12 +123,15 @@ public class ChannelPane extends GridPane {
         nameConstraint.setMinWidth(Double.NEGATIVE_INFINITY);
         ColumnConstraints urlConstraint = new ColumnConstraints();
         urlConstraint.setHgrow(Priority.ALWAYS);
+        ColumnConstraints subscribedConstraint = new ColumnConstraints();
+        subscribedConstraint.setHgrow(Priority.NEVER);
         ColumnConstraints editConstraint = new ColumnConstraints();
         editConstraint.setHgrow(Priority.NEVER);
         ColumnConstraints deleteConstraint = new ColumnConstraints();
         deleteConstraint.setHgrow(Priority.NEVER);
 
         getColumnConstraints().addAll(checkBoxConstraint, nameConstraint,
-                urlConstraint, editConstraint, deleteConstraint);
+                urlConstraint, subscribedConstraint, editConstraint,
+                deleteConstraint);
     }
 }
