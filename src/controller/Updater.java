@@ -2,6 +2,7 @@ package controller;
 
 import controller.tasks.RssReader;
 import controller.ui.ConfirmationDialog;
+import controller.ui.ErrorDialog;
 import controller.ui.ExceptionDialog;
 import controller.ui.VideoPane;
 import database.Database;
@@ -54,6 +55,11 @@ public class Updater implements Initializable {
     public static final int WIDTH = 800, HEIGHT = 600;
 
     /**
+     * Identifier for list of unwatched videos.
+     */
+    private static final int UNWATCHED_VIDEOS_ID = -1;
+
+    /**
      * Application instance.
      */
     private Application mApplication;
@@ -62,6 +68,13 @@ public class Updater implements Initializable {
      * List of videos shown in Video's scroll pane.
      */
     private List<Video> mVideosShown;
+
+    /**
+     * Identifier to refresh the videos after calling
+     * {@link Updater#onRefreshClicked()}. The identifier is either a channel id
+     * or -1 for unwatched videos.
+     */
+    private int mPostRefreshId;
 
     /**
      * Scroll pane containing the videos.
@@ -103,6 +116,7 @@ public class Updater implements Initializable {
             refreshChannelList();
             // Initialize video list
             mVideosShown = Database.getUnwatchedVideos();
+            mPostRefreshId = UNWATCHED_VIDEOS_ID;
             mButtonSubscriptions.setText("Subscriptions ("
                     + mVideosShown.size() + ")");
             refreshVideoList();
@@ -120,6 +134,7 @@ public class Updater implements Initializable {
     public final void onSubscriptionsClicked() {
         try {
             mVideosShown = Database.getUnwatchedVideos();
+            mPostRefreshId = UNWATCHED_VIDEOS_ID;
             refreshVideoList();
             mListViewChannel.getSelectionModel().clearSelection();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
@@ -196,6 +211,7 @@ public class Updater implements Initializable {
 
         new Thread(rssReader).start();
 
+        final RssReader finalRssReaderOnSuccess = rssReader;
         rssReader.setOnSucceeded(t -> {
             mProgressMessage.textProperty().unbind();
             mProgressBar.progressProperty().unbind();
@@ -203,6 +219,31 @@ public class Updater implements Initializable {
             mProgressBar.setProgress(0);
             mProgressBar.setVisible(false);
             refreshChannelList();
+
+            try {
+                if (mPostRefreshId == UNWATCHED_VIDEOS_ID) {
+                    mVideosShown = Database.getUnwatchedVideos();
+                } else {
+                    mVideosShown = Database.getAllVideosByChannel(
+                            mPostRefreshId);
+                }
+                refreshVideoList();
+            } catch (ClassNotFoundException | SQLException
+                    | ExceptionHandler e) {
+                ExceptionDialog.show(e);
+                LOGGER.error(e);
+                e.printStackTrace();
+            }
+
+            List<Channel> notFoundChannels =
+                    finalRssReaderOnSuccess.getNotFoundChannels();
+            if (!notFoundChannels.isEmpty()) {
+                String message = "";
+                for (Channel channel : notFoundChannels) {
+                    message += channel.getName() + "\n";
+                }
+                ErrorDialog.show("Not found channels", message);
+            }
         });
 
         final RssReader finalRssReader = rssReader;
@@ -230,6 +271,7 @@ public class Updater implements Initializable {
         int id = mListViewChannel.getSelectionModel().getSelectedItem().getId();
         try {
             mVideosShown = Database.getAllVideosByChannel(id);
+            mPostRefreshId = id;
             refreshVideoList();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);

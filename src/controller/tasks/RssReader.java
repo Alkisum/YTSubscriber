@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +36,11 @@ public class RssReader extends Task<Void> {
      * List of channels to read.
      */
     private final List<Channel> mChannels;
+
+    /**
+     * List of not found channels.
+     */
+    private List<Channel> mNotFoundChannels = new ArrayList<>();
 
     /**
      * RssReader constructor.
@@ -63,7 +69,16 @@ public class RssReader extends Task<Void> {
             DocumentBuilderFactory dbFactory =
                     DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(channel.getUrl());
+
+            Document doc;
+            try {
+                doc = dBuilder.parse(channel.getUrl());
+            } catch (IOException e) {
+                mNotFoundChannels.add(channel);
+                // Jump to next channel
+                continue;
+            }
+
 
             doc.getDocumentElement().normalize();
 
@@ -137,5 +152,12 @@ public class RssReader extends Task<Void> {
             Database.insertVideos(videos);
         }
         return null;
+    }
+
+    /**
+     * @return Channels not found while reading the feeds
+     */
+    public final List<Channel> getNotFoundChannels() {
+        return mNotFoundChannels;
     }
 }
