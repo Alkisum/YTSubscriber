@@ -52,7 +52,8 @@
                 </graphic>
             </Button>
 
-            <Button GridPane.columnIndex="2"
+            <Button fx:id="mButtonRefresh"
+                    GridPane.columnIndex="2"
                     GridPane.rowIndex="0"
                     onAction="#onRefreshClicked">
                 <tooltip>
@@ -70,8 +71,7 @@
                       GridPane.rowIndex="1"
                       GridPane.columnSpan="3"
                       GridPane.hgrow="ALWAYS"
-                      GridPane.vgrow="ALWAYS"
-                      onMouseClicked="#onListViewClicked"/>
+                      GridPane.vgrow="ALWAYS"/>
         </GridPane>
 
         <GridPane hgap="5"

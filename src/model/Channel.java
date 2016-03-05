@@ -45,7 +45,7 @@ public class Channel {
     /**
      * Channel subscribed flag.
      */
-    private boolean mSubscribed;
+    private final boolean mSubscribed;
 
     /**
      * The channel is selected ini the manager list.

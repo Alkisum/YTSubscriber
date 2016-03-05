@@ -106,25 +106,45 @@ public class Updater implements Initializable {
     @FXML
     private Button mButtonSubscriptions;
 
+    /**
+     * Button to check for new videos available.
+     */
+    @FXML
+    private Button mButtonRefresh;
+
     @Override
     public final void initialize(final URL location,
                                  final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
             Database.init();
-            // Initialize channel list
-            refreshChannelList();
-            // Initialize video list
-            mVideosShown = Database.getUnwatchedVideos();
-            mPostRefreshId = UNWATCHED_VIDEOS_ID;
-            mButtonSubscriptions.setText("Subscriptions ("
-                    + mVideosShown.size() + ")");
-            refreshVideoList();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
         }
+
+        setGui();
+    }
+
+    /**
+     * Set GUI components, add listeners.
+     */
+    private void setGui() {
+        // Initialize channel list
+        refreshChannelList();
+        // Initialize video list
+        mPostRefreshId = UNWATCHED_VIDEOS_ID;
+        refreshVideoList();
+
+        mButtonSubscriptions.setText(
+                "Subscriptions (" + mVideosShown.size() + ")");
+
+        mListViewChannel.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> {
+                    mPostRefreshId = newValue.getId();
+                    refreshVideoList();
+                });
     }
 
     /**
@@ -132,16 +152,9 @@ public class Updater implements Initializable {
      */
     @FXML
     public final void onSubscriptionsClicked() {
-        try {
-            mVideosShown = Database.getUnwatchedVideos();
-            mPostRefreshId = UNWATCHED_VIDEOS_ID;
-            refreshVideoList();
-            mListViewChannel.getSelectionModel().clearSelection();
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        mPostRefreshId = UNWATCHED_VIDEOS_ID;
+        refreshVideoList();
+        mListViewChannel.getSelectionModel().clearSelection();
     }
 
     /**
@@ -167,17 +180,9 @@ public class Updater implements Initializable {
             btn.setDisable(true);
             // Enable manager button and refresh lists
             stage.setOnCloseRequest(we -> {
-                try {
-                    btn.setDisable(false);
-                    refreshChannelList();
-                    mVideosShown = Database.getVideos(mVideosShown);
-                    refreshVideoList();
-                } catch (ClassNotFoundException | ExceptionHandler
-                        | SQLException e) {
-                    ExceptionDialog.show(e);
-                    LOGGER.error(e);
-                    e.printStackTrace();
-                }
+                btn.setDisable(false);
+                refreshChannelList();
+                refreshVideoList();
             });
             stage.show();
         } catch (IOException e) {
@@ -205,6 +210,8 @@ public class Updater implements Initializable {
             return;
         }
 
+        mButtonRefresh.setDisable(true);
+
         mProgressMessage.textProperty().bind(rssReader.messageProperty());
         mProgressBar.progressProperty().bind(rssReader.progressProperty());
         mProgressBar.setVisible(true);
@@ -218,22 +225,9 @@ public class Updater implements Initializable {
             mProgressMessage.setText("");
             mProgressBar.setProgress(0);
             mProgressBar.setVisible(false);
-            refreshChannelList();
 
-            try {
-                if (mPostRefreshId == UNWATCHED_VIDEOS_ID) {
-                    mVideosShown = Database.getUnwatchedVideos();
-                } else {
-                    mVideosShown = Database.getAllVideosByChannel(
-                            mPostRefreshId);
-                }
-                refreshVideoList();
-            } catch (ClassNotFoundException | SQLException
-                    | ExceptionHandler e) {
-                ExceptionDialog.show(e);
-                LOGGER.error(e);
-                e.printStackTrace();
-            }
+            refreshChannelList();
+            refreshVideoList();
 
             List<Channel> notFoundChannels =
                     finalRssReaderOnSuccess.getNotFoundChannels();
@@ -244,6 +238,8 @@ public class Updater implements Initializable {
                 }
                 ErrorDialog.show("Not found channels", message);
             }
+
+            mButtonRefresh.setDisable(false);
         });
 
         final RssReader finalRssReader = rssReader;
@@ -260,24 +256,9 @@ public class Updater implements Initializable {
                 LOGGER.error(throwable);
                 throwable.printStackTrace();
             }
-        });
-    }
 
-    /**
-     * Triggered when the list view is clicked.
-     */
-    @FXML
-    public final void onListViewClicked() {
-        int id = mListViewChannel.getSelectionModel().getSelectedItem().getId();
-        try {
-            mVideosShown = Database.getAllVideosByChannel(id);
-            mPostRefreshId = id;
-            refreshVideoList();
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+            mButtonRefresh.setDisable(false);
+        });
     }
 
     /**
@@ -293,10 +274,7 @@ public class Updater implements Initializable {
                     protected Object call() throws Exception {
                         try {
                             Database.updateVideoWatchState(true);
-                            // Initialize channel list
                             refreshChannelList();
-                            // Refresh video list
-                            mVideosShown = Database.getVideos(mVideosShown);
                             refreshVideoList();
                         } catch (ClassNotFoundException | SQLException
                                 | ExceptionHandler e) {
@@ -323,10 +301,7 @@ public class Updater implements Initializable {
                     protected Object call() throws Exception {
                         try {
                             Database.updateVideoWatchState(false);
-                            // Initialize channel list
                             refreshChannelList();
-                            // Refresh video list
-                            mVideosShown = Database.getVideos(mVideosShown);
                             refreshVideoList();
                         } catch (ClassNotFoundException | SQLException
                                 | ExceptionHandler e) {
@@ -361,9 +336,20 @@ public class Updater implements Initializable {
     /**
      * Refresh the video list.
      */
-    private void refreshVideoList() {
-        mScrollPaneVideo.setContent(new VideoPane(mVideosShown, this,
-                mProgressMessage, mProgressBar));
+    public final void refreshVideoList() {
+        try {
+            if (mPostRefreshId == UNWATCHED_VIDEOS_ID) {
+                mVideosShown = Database.getUnwatchedVideos();
+            } else {
+                mVideosShown = Database.getAllVideosByChannel(mPostRefreshId);
+            }
+            mScrollPaneVideo.setContent(new VideoPane(mVideosShown, this,
+                    mProgressMessage, mProgressBar));
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
     }
 
     /**

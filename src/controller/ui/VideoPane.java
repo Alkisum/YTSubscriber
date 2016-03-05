@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -69,6 +70,12 @@ public class VideoPane extends GridPane {
      */
     private static final String YOUTUBE =
             "/view/icons/ic_youtube_grey_18dp.png";
+
+    /**
+     * Icon for deleting videos.
+     */
+    private static final String DELETE =
+            "/view/icons/ic_delete_grey_18dp.png";
 
     /**
      * Number of rows for each video pane.
@@ -213,7 +220,7 @@ public class VideoPane extends GridPane {
         Label title = new Label(video.getTitle());
         title.setStyle("-fx-font-weight: bold");
         title.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(title, 3);
+        setColumnSpan(title, 4);
         setHgrow(title, Priority.ALWAYS);
         setVgrow(title, Priority.ALWAYS);
 
@@ -221,7 +228,7 @@ public class VideoPane extends GridPane {
         Label channelName = new Label("by " + Database.getChannelNameById(
                 video.getChannelId()));
         channelName.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(channelName, 3);
+        setColumnSpan(channelName, 4);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
 
@@ -236,7 +243,7 @@ public class VideoPane extends GridPane {
         // YouTube
         ImageView youtube = new ImageView(new Image(
                 getClass().getResourceAsStream(YOUTUBE)));
-        setVgrow(youtube, Priority.ALWAYS);
+        Tooltip.install(youtube, new Tooltip("Watch video on YouTube"));
         youtube.setStyle("-fx-cursor: hand;");
         youtube.setOnMouseClicked(
                 event -> mUpdater.getApplication().getHostServices()
@@ -244,20 +251,33 @@ public class VideoPane extends GridPane {
 
         // Watch
         Image image;
+        Tooltip tooltip;
         if (video.isWatched()) {
             image = new Image(getClass().getResourceAsStream(WATCHED));
+            tooltip = new Tooltip("Set video to unwatched");
         } else {
             image = new Image(getClass().getResourceAsStream(UNWATCHED));
+            tooltip = new Tooltip("Set video to watched");
         }
         ImageView watched = new ImageView(image);
+        Tooltip.install(watched, tooltip);
         watched.setStyle("-fx-cursor: hand;");
         watched.setOnMouseClicked(
                 event -> updateVideoWatchedState(video, watched));
 
+        // Delete video
+        ImageView delete = new ImageView(new Image(
+                getClass().getResourceAsStream(DELETE)));
+        Tooltip.install(delete, new Tooltip("Delete video"));
+        delete.setStyle("-fx-cursor: hand;");
+        delete.setOnMouseClicked(
+                event -> ConfirmationDialog.show("Delete video",
+                        "Are you sure you want to delete the video "
+                                + video.getTitle() + "?",
+                        deleteVideo(video)));
+
         // Separator
         Separator separator = new Separator(Orientation.HORIZONTAL);
-        setColumnSpan(separator, 4);
-        setHgrow(separator, Priority.ALWAYS);
 
         Platform.runLater(() -> {
             int row = pRow;
@@ -267,7 +287,8 @@ public class VideoPane extends GridPane {
             add(channelName, 1, row++);
             add(date, 1, row);
             add(youtube, 2, row);
-            add(watched, 3, row++);
+            add(watched, 3, row);
+            add(delete, 4, row++);
             add(separator, 0, row++);
         });
     }
@@ -333,5 +354,29 @@ public class VideoPane extends GridPane {
         }
         video.setWatched(!video.isWatched());
         mUpdater.refreshChannelList();
+    }
+
+    /**
+     * Delete the given video.
+     *
+     * @param video Video to delete
+     * @return Task deleting the given video
+     */
+    private Task deleteVideo(final Video video) {
+        return new Task() {
+            @Override
+            protected Object call() throws Exception {
+                try {
+                    Database.deleteVideo(video);
+                    mUpdater.refreshVideoList();
+                } catch (ClassNotFoundException | SQLException
+                        | ExceptionHandler e) {
+                    ExceptionDialog.show(e);
+                    LOGGER.error(e);
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
     }
 }

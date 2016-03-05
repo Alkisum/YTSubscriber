@@ -71,13 +71,13 @@ public class Manager implements Initializable {
      * Progress bar.
      */
     @FXML
-    private ProgressBar mProgressBar;
+    private ProgressBar mProgressBarManager;
 
     /**
      * Progress message.
      */
     @FXML
-    private Label mProgressMessage;
+    private Label mProgressMessageManager;
 
     /**
      * List of channels.
@@ -127,18 +127,20 @@ public class Manager implements Initializable {
             return;
         }
         OpmlReader opmlReader = new OpmlReader(selectedFile);
-        mProgressMessage.textProperty().bind(opmlReader.messageProperty());
-        mProgressBar.progressProperty().bind(opmlReader.progressProperty());
-        mProgressBar.setVisible(true);
+        mProgressMessageManager.textProperty().bind(
+                opmlReader.messageProperty());
+        mProgressBarManager.progressProperty().bind(
+                opmlReader.progressProperty());
+        mProgressBarManager.setVisible(true);
 
         new Thread(opmlReader).start();
         opmlReader.setOnSucceeded(t -> {
             try {
-                mProgressMessage.textProperty().unbind();
-                mProgressBar.progressProperty().unbind();
-                mProgressMessage.setText("");
-                mProgressBar.setProgress(0);
-                mProgressBar.setVisible(false);
+                mProgressMessageManager.textProperty().unbind();
+                mProgressBarManager.progressProperty().unbind();
+                mProgressMessageManager.setText("");
+                mProgressBarManager.setProgress(0);
+                mProgressBarManager.setVisible(false);
                 showChannel(true);
             } catch (ClassNotFoundException | SQLException
                     | ExceptionHandler e) {
@@ -150,11 +152,11 @@ public class Manager implements Initializable {
 
         opmlReader.setOnFailed(t -> {
             try {
-                mProgressMessage.textProperty().unbind();
-                mProgressBar.progressProperty().unbind();
-                mProgressMessage.setText("");
-                mProgressBar.setProgress(0);
-                mProgressBar.setVisible(false);
+                mProgressMessageManager.textProperty().unbind();
+                mProgressBarManager.progressProperty().unbind();
+                mProgressMessageManager.setText("");
+                mProgressBarManager.setProgress(0);
+                mProgressBarManager.setVisible(false);
                 throw opmlReader.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);

@@ -80,13 +80,13 @@
                 GridPane.vgrow="ALWAYS"
                 fitToWidth="true"/>
 
-    <Label fx:id="mProgressMessage"
+    <Label fx:id="mProgressMessageManager"
            styleClass="progress-message"
            GridPane.columnIndex="0"
            GridPane.rowIndex="2"
            GridPane.hgrow="ALWAYS"/>
 
-    <ProgressBar fx:id="mProgressBar"
+    <ProgressBar fx:id="mProgressBarManager"
                  styleClass="progress-bar"
                  GridPane.columnIndex="1"
                  GridPane.rowIndex="2"

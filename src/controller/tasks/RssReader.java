@@ -40,7 +40,7 @@ public class RssReader extends Task<Void> {
     /**
      * List of not found channels.
      */
-    private List<Channel> mNotFoundChannels = new ArrayList<>();
+    private final List<Channel> mNotFoundChannels = new ArrayList<>();
 
     /**
      * RssReader constructor.

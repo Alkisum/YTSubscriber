@@ -371,32 +371,6 @@ public final class Database {
     }
 
     /**
-     * @param videos List of videos to refresh
-     * @return List of videos refreshed
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static List<Video> getVideos(final List<Video> videos)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT * FROM Video "
-                     + "WHERE video_id=?;")) {
-            List<Video> updatedVideos = new ArrayList<>();
-            for (Video video : videos) {
-                stmt.setInt(1, video.getId());
-                Video updatedVideo = buildVideoFromResultSet(
-                        stmt.executeQuery());
-                if (updatedVideo != null) {
-                    updatedVideos.add(updatedVideo);
-                }
-            }
-            return updatedVideos;
-        }
-    }
-
-    /**
      * @param channelId Channel id to get the videos from
      * @return All the videos of the given channel
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
@@ -576,31 +550,6 @@ public final class Database {
             }
             c.commit();
         }
-    }
-
-    /**
-     * Build a video from the given result set.
-     *
-     * @param rs Result set
-     * @return Video
-     * @throws SQLException Exception while executing the select statement
-     */
-    private static Video buildVideoFromResultSet(final ResultSet rs)
-            throws SQLException {
-        if (rs.next()) {
-            int id = rs.getInt("video_id");
-            return new Video(
-                    id,
-                    rs.getString("video_title"),
-                    rs.getString("video_url"),
-                    rs.getString("video_date"),
-                    rs.getString("video_thumbnail_url"),
-                    new File(Video.THUMBNAIL_PATH + id + Video.THUMBNAIL_EXT),
-                    rs.getBoolean("video_watched"),
-                    rs.getInt("video_channel_id")
-            );
-        }
-        return null;
     }
 
     /**
