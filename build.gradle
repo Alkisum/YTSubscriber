@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+group 'com.alkisum.javafx.ytsubscriber'
+version '2.0'
+mainClassName = 'main.Main'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.5'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.5'
+    compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+}
+
+shadowJar {
+    baseName = 'YTSubscriber'
+    manifest {
+        attributes 'Main-Class': mainClassName,
+                'Implementation-title': 'YTSubscriber',
+                'Implementation-vendor': 'https://github.com/Alkisum/YTSubscriber',
+                'Implementation-Version': version + '_' + getDate()
+    }
+}
+
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMdd')
+    return formattedDate
+}

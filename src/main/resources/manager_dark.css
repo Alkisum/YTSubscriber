@@ -1,0 +1,35 @@
+.root {
+    -fx-base: rgb(50, 50, 50);
+    -fx-background: rgb(50, 50, 50);
+    -fx-control-inner-background: rgb(50, 50, 50);
+    -fx-accent: #8cbc65;
+    -fx-box-border: #292929;
+    -fx-light-text-color: #cacaca;
+}
+
+.button {
+    -fx-background-color: transparent;
+}
+
+.check-box, scroll-pane {
+    -fx-focus-color: -fx-box-border, -fx-control-inner-background;
+    -fx-faint-focus-color: transparent;
+}
+
+.progress-message {
+    -fx-padding: 5 5 5 11;
+}
+
+.progress-bar {
+    -fx-padding: 5 27 5 5;
+}
+
+.button:hover{
+    -fx-background-color: -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+    -fx-background-radius: 3px, 3px, 2px, 1px;
+    -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+}

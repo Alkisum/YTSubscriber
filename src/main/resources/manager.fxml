@@ -1,0 +1,99 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<GridPane fx:controller="controller.Manager"
+          xmlns:fx="http://javafx.com/fxml">
+
+    <GridPane GridPane.columnIndex="0"
+              GridPane.rowIndex="0"
+              GridPane.hgrow="ALWAYS"
+              GridPane.columnSpan="2"
+              hgap="10"
+              vgap="5">
+
+        <padding>
+            <Insets bottom="5.0" left="11.0" right="27.0" top="5.0"/>
+        </padding>
+
+        <CheckBox fx:id="mCheckBoxAll"
+                  GridPane.columnIndex="0"
+                  GridPane.rowIndex="0"
+                  GridPane.hgrow="ALWAYS"
+                  onAction="#onSelectAll"/>
+
+        <Button fx:id="mButtonImportChannels"
+                GridPane.columnIndex="1"
+                GridPane.rowIndex="0"
+                onAction="#onImportClicked">
+            <tooltip>
+                <Tooltip text="Import channels from OPML file"/>
+            </tooltip>
+            <graphic>
+                <ImageView>
+                    <Image url="@icons/ic_file_download_dark_18dp.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
+        <Button fx:id="mButtonAddChannel"
+                GridPane.columnIndex="2"
+                GridPane.rowIndex="0"
+                onAction="#onAddChannelClicked">
+            <tooltip>
+                <Tooltip text="Add a new channel"/>
+            </tooltip>
+            <graphic>
+                <ImageView>
+                    <Image url="@icons/ic_add_dark_18dp.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
+        <Button fx:id="mButtonDeleteSelection"
+                GridPane.columnIndex="3"
+                GridPane.rowIndex="0"
+                onAction="#onDeleteSelectionClicked">
+            <tooltip>
+                <Tooltip text="Delete the selected channels"/>
+            </tooltip>
+            <graphic>
+                <ImageView>
+                    <Image url="@icons/ic_delete_dark_18dp.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
+    </GridPane>
+
+    <ScrollPane fx:id="mScrollPaneChannel"
+                GridPane.columnIndex="0"
+                GridPane.rowIndex="1"
+                GridPane.columnSpan="2"
+                vbarPolicy="ALWAYS"
+                hbarPolicy="NEVER"
+                GridPane.hgrow="ALWAYS"
+                GridPane.vgrow="ALWAYS"
+                fitToWidth="true"/>
+
+    <Label fx:id="mProgressMessageManager"
+           styleClass="progress-message"
+           GridPane.columnIndex="0"
+           GridPane.rowIndex="2"
+           GridPane.hgrow="ALWAYS"/>
+
+    <ProgressBar fx:id="mProgressBarManager"
+                 styleClass="progress-bar"
+                 GridPane.columnIndex="1"
+                 GridPane.rowIndex="2"
+                 progress="0"
+                 prefWidth="200"
+                 visible="false"/>
+
+</GridPane>

@@ -1,0 +1,4 @@
+.button {
+    -fx-focus-color: -fx-box-border, -fx-control-inner-background;
+    -fx-faint-focus-color: transparent;
+}

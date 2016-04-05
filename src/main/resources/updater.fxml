@@ -1,0 +1,150 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<GridPane fx:controller="controller.Updater"
+          xmlns:fx="http://javafx.com/fxml">
+
+    <MenuBar GridPane.columnIndex="0"
+             GridPane.rowIndex="0"
+             GridPane.columnSpan="2"
+             GridPane.hgrow="ALWAYS">
+
+        <Menu text="_File"
+              mnemonicParsing="true">
+            <MenuItem text="Exit"
+                      onAction="#onExitClicked"/>
+        </Menu>
+
+        <Menu text="_View"
+              mnemonicParsing="true">
+            <Menu text="Theme">
+                <fx:define>
+                    <ToggleGroup fx:id="themes"/>
+                </fx:define>
+                <RadioMenuItem fx:id="mRadioMenuItemThemeClassic"
+                               onAction="#onClassicThemeSelected"
+                               text="Classic"
+                               toggleGroup="$themes"/>
+                <RadioMenuItem fx:id="mRadioMenuItemThemeDark"
+                               onAction="#onDarkThemeSelected"
+                               text="Dark"
+                               toggleGroup="$themes"/>
+            </Menu>
+        </Menu>
+        <Menu text="_Channel"
+              mnemonicParsing="true">
+            <MenuItem text="Manage..."
+                      onAction="#onManageClicked"/>
+        </Menu>
+        <Menu text="V_ideo"
+              mnemonicParsing="true">
+            <MenuItem text="Watch all"
+                      onAction="#onWatchAllClicked"/>
+            <MenuItem text="Unwatch all"
+                      onAction="#onUnwatchAllClicked"/>
+        </Menu>
+        <Menu text="_Help"
+              mnemonicParsing="true">
+            <MenuItem text="About"
+                      onAction="#onAboutClicked"/>
+        </Menu>
+    </MenuBar>
+
+    <Separator
+            styleClass="menu-bar-separator"
+            GridPane.columnIndex="0"
+            GridPane.rowIndex="1"
+            GridPane.columnSpan="2"/>
+
+    <SplitPane GridPane.columnIndex="0"
+               GridPane.rowIndex="2"
+               GridPane.columnSpan="2"
+               GridPane.hgrow="ALWAYS"
+               GridPane.vgrow="ALWAYS"
+               dividerPositions="0.3">
+
+        <padding>
+            <Insets bottom="5.0" left="0.0" right="0.0" top="5.0"/>
+        </padding>
+
+        <GridPane hgap="5"
+                  vgap="5"
+                  GridPane.hgrow="ALWAYS"
+                  GridPane.vgrow="ALWAYS">
+
+            <padding>
+                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+            </padding>
+
+            <Button fx:id="mButtonSubscriptions"
+                    text="Subscriptions"
+                    prefHeight="28"
+                    GridPane.columnIndex="0"
+                    GridPane.rowIndex="0"
+                    GridPane.hgrow="ALWAYS"
+                    onAction="#onSubscriptionsClicked">
+                <tooltip>
+                    <Tooltip text="Show unwatched videos"/>
+                </tooltip>
+            </Button>
+
+            <Button fx:id="mButtonRefresh"
+                    GridPane.columnIndex="1"
+                    GridPane.rowIndex="0"
+                    onAction="#onRefreshClicked">
+                <tooltip>
+                    <Tooltip text="Check for new videos available"/>
+                </tooltip>
+                <graphic>
+                    <ImageView>
+                        <Image url="@icons/ic_sync_dark_18dp.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+            <ListView fx:id="mListViewChannel"
+                      GridPane.columnIndex="0"
+                      GridPane.rowIndex="1"
+                      GridPane.columnSpan="2"
+                      GridPane.hgrow="ALWAYS"
+                      GridPane.vgrow="ALWAYS"/>
+        </GridPane>
+
+        <GridPane hgap="5"
+                  vgap="5"
+                  GridPane.hgrow="ALWAYS"
+                  GridPane.vgrow="ALWAYS">
+
+            <padding>
+                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+            </padding>
+
+            <ScrollPane fx:id="mScrollPaneVideo"
+                        GridPane.rowIndex="0"
+                        GridPane.columnIndex="0"
+                        vbarPolicy="ALWAYS"
+                        hbarPolicy="NEVER"
+                        GridPane.hgrow="ALWAYS"
+                        GridPane.vgrow="ALWAYS"
+                        fitToWidth="true"/>
+        </GridPane>
+
+    </SplitPane>
+
+    <Label fx:id="mProgressMessage"
+           styleClass="progress-message"
+           GridPane.columnIndex="0"
+           GridPane.rowIndex="3"
+           GridPane.hgrow="ALWAYS"/>
+
+    <ProgressBar fx:id="mProgressBar"
+                 styleClass="progress-bar"
+                 GridPane.columnIndex="1"
+                 GridPane.rowIndex="3"
+                 progress="0"
+                 prefWidth="200"
+                 visible="false"/>
+
+</GridPane>

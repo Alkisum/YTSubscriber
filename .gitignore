@@ -1,5 +1,8 @@
-/.idea
-/doc
-/out
-/subscription_manager
-*.log
+.gradle
+.idea
+build
+doc
+gradle
+gradlew
+gradlew.bat
+YTSubscriber.log
