@@ -15,7 +15,7 @@ import java.util.Properties;
  * Class defining the application configuration.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 2.1
  * @since 28/11/15.
  */
 public final class Config {
@@ -42,9 +42,8 @@ public final class Config {
      */
     private static final String PROP_CHANNEL_URL_VALUE = Channel.BASE_URL;
 
-
     /**
-     * Default value for theme in properties file.
+     * Key for theme in properties file.
      */
     public static final String PROP_THEME_KEY = "theme";
 
@@ -52,6 +51,26 @@ public final class Config {
      * Default value for theme in properties file.
      */
     private static final String PROP_THEME_VALUE = Theme.CLASSIC;
+
+    /**
+     * Key for window's width in properties file.
+     */
+    public static final String PROP_WIDTH_KEY = "windowWidth";
+
+    /**
+     * Key for window's height in properties file.
+     */
+    public static final String PROP_HEIGHT_KEY = "windowHeight";
+
+    /**
+     * Key for window's X position in properties file.
+     */
+    public static final String PROP_X_KEY = "windowX";
+
+    /**
+     * Key for window's Y position in properties file.
+     */
+    public static final String PROP_Y_KEY = "windowY";
 
     /**
      * Config constructor.
