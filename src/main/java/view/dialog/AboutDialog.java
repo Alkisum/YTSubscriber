@@ -22,7 +22,7 @@ import java.util.Date;
  *
  * @author Alkisum
  * @version 2.0
- * @since 27/03/16.
+ * @since 2.0
  */
 public final class AboutDialog {
 

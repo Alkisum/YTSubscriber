@@ -16,7 +16,7 @@ import java.util.Properties;
  *
  * @author Alkisum
  * @version 2.1
- * @since 28/11/15.
+ * @since 1.0
  */
 public final class Config {
 

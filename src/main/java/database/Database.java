@@ -3,6 +3,7 @@ package database;
 import config.Config;
 import exception.Error;
 import exception.ExceptionHandler;
+import javafx.concurrent.Task;
 import model.Channel;
 import model.Video;
 import org.sqlite.SQLiteConfig;
@@ -28,8 +29,8 @@ import java.util.List;
  * Class handling database operation.
  *
  * @author Alkisum
- * @version 2.0
- * @since 16/04/15.
+ * @version 2.2
+ * @since 1.0
  */
 public final class Database {
 
@@ -61,14 +62,15 @@ public final class Database {
      * Initialize database by creating tables (if they don't exist) and by
      * updating the tables (if necessary).
      *
+     * @return Task to update the database, null if no update is necessary
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           SQL Exception
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public static void init() throws ClassNotFoundException, SQLException,
+    public static Task<?> init() throws ClassNotFoundException, SQLException,
             ExceptionHandler {
         createTables();
-        updateTables();
+        return updateTables();
     }
 
     /**
@@ -118,6 +120,7 @@ public final class Database {
                     + " video_thumbnail_url TEXT NOT NULL,"
                     + " video_watched       INT  NOT NULL,"
                     + " video_channel_id    INT  NOT NULL,"
+                    + " video_duration      INT  NOT NULL,"
                     + " FOREIGN KEY(video_channel_id)"
                     + " REFERENCES Channel(channel_id));";
             stmt.executeUpdate(sql);
@@ -128,15 +131,17 @@ public final class Database {
      * Updates table in database. Will be used when upgrading to a newer version
      * with changes in the database structure.
      *
+     * @return Task to update the database, null if no update is necessary
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           Exception while executing statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    private static void updateTables()
+    private static Task<?> updateTables()
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              Statement stmt = c.createStatement()) {
             DatabaseMetaData md = c.getMetaData();
+            // Channel subscribed (since v1.2)
             ResultSet rs = md.getColumns(
                     null, null, "Channel", "channel_subscribed");
             if (!rs.next()) {
@@ -144,6 +149,15 @@ public final class Database {
                         + " INT DEFAULT 1;";
                 stmt.executeUpdate(sql);
             }
+            // Video duration (since v2.2)
+            rs = md.getColumns(null, null, "Video", "video_duration");
+            if (!rs.next()) {
+                String sql = "ALTER TABLE Video ADD COLUMN video_duration"
+                        + " INT DEFAULT 0;";
+                stmt.executeUpdate(sql);
+                return DatabaseUpdater.getUpdateVideoDurationTask();
+            }
+            return null;
         }
     }
 
@@ -363,6 +377,22 @@ public final class Database {
     }
 
     /**
+     * @return All the videos
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the select
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    static List<Video> getAllVideos()
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
+        try (Connection c = getConnection();
+             Statement stmt = c.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM Video;")) {
+            return buildVideoListFromResultSet(rs);
+        }
+    }
+
+    /**
      * @param channelId Channel id to get the videos from
      * @return All the videos of the given channel
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
@@ -486,6 +516,30 @@ public final class Database {
     }
 
     /**
+     * Update the given video's duration.
+     *
+     * @param videos List of videos to update
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the update
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    static void updateVideoDuration(final List<Video> videos)
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
+        try (Connection c = getConnection();
+             PreparedStatement stmt = c.prepareStatement(
+                     "UPDATE Video SET video_duration=? WHERE video_id=?;")) {
+            c.setAutoCommit(false);
+            for (Video video : videos) {
+                stmt.setLong(1, video.getDuration());
+                stmt.setInt(2, video.getId());
+                stmt.executeUpdate();
+            }
+            c.commit();
+        }
+    }
+
+    /**
      * Check if the video already exists in the database.
      *
      * @param url Video URL
@@ -523,8 +577,8 @@ public final class Database {
              PreparedStatement stmt = c.prepareStatement(
                      "INSERT INTO Video (video_title, video_url, video_date, "
                              + "video_thumbnail_url, video_watched, "
-                             + "video_channel_id) "
-                             + "VALUES (?, ?, ?, ?, 0, ?);")) {
+                             + "video_channel_id, video_duration) "
+                             + "VALUES (?, ?, ?, ?, 0, ?, ?);")) {
             c.setAutoCommit(false);
             for (Video video : videos) {
                 stmt.setString(1, video.getTitle());
@@ -532,6 +586,7 @@ public final class Database {
                 stmt.setString(3, video.getDate());
                 stmt.setString(4, video.getThumbnailUrl());
                 stmt.setInt(5, video.getChannelId());
+                stmt.setLong(6, video.getDuration());
                 stmt.executeUpdate();
 
                 // Download thumbnail
@@ -565,7 +620,8 @@ public final class Database {
                             new File(Video.THUMBNAIL_PATH + id
                                     + Video.THUMBNAIL_EXT),
                             rs.getBoolean("video_watched"),
-                            rs.getInt("video_channel_id")
+                            rs.getInt("video_channel_id"),
+                            rs.getInt("video_duration")
                     )
             );
         }

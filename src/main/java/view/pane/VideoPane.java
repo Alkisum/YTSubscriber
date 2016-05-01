@@ -35,8 +35,8 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 2.0
- * @since 19/11/15.
+ * @version 2.2
+ * @since 1.0
  */
 public class VideoPane extends GridPane {
 
@@ -200,7 +200,7 @@ public class VideoPane extends GridPane {
         Label title = new Label(video.getTitle());
         title.setStyle("-fx-font-weight: bold");
         title.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(title, 4);
+        setColumnSpan(title, 5);
         setHgrow(title, Priority.ALWAYS);
         setVgrow(title, Priority.ALWAYS);
 
@@ -208,7 +208,7 @@ public class VideoPane extends GridPane {
         Label channelName = new Label("by " + Database.getChannelNameById(
                 video.getChannelId()));
         channelName.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(channelName, 4);
+        setColumnSpan(channelName, 5);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
 
@@ -219,6 +219,15 @@ public class VideoPane extends GridPane {
         date.setAlignment(Pos.CENTER_LEFT);
         setHgrow(date, Priority.ALWAYS);
         setVgrow(date, Priority.ALWAYS);
+
+        // Duration
+        Label duration;
+        if (video.getDuration() < 1) {
+            duration = new Label("");
+        } else {
+            duration = new Label(video.getFormatDuration());
+        }
+        duration.setStyle("-fx-font-weight: bold");
 
         // YouTube
         ImageView youtube = new ImageView(new Image(
@@ -260,7 +269,7 @@ public class VideoPane extends GridPane {
 
         // Separator
         Separator separator = new Separator(Orientation.HORIZONTAL);
-        setColumnSpan(separator, 5);
+        setColumnSpan(separator, 6);
 
         Platform.runLater(() -> {
             int row = pRow;
@@ -269,9 +278,10 @@ public class VideoPane extends GridPane {
             add(title, 1, row++);
             add(channelName, 1, row++);
             add(date, 1, row);
-            add(youtube, 2, row);
-            add(watched, 3, row);
-            add(delete, 4, row++);
+            add(duration, 2, row);
+            add(youtube, 3, row);
+            add(watched, 4, row);
+            add(delete, 5, row++);
             add(separator, 0, row++);
         });
     }

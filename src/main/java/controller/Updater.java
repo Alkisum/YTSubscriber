@@ -1,11 +1,6 @@
 package controller;
 
 import controller.tasks.RssReader;
-import view.dialog.AboutDialog;
-import view.dialog.ConfirmationDialog;
-import view.dialog.ErrorDialog;
-import view.dialog.ExceptionDialog;
-import view.pane.VideoPane;
 import database.Database;
 import exception.ExceptionHandler;
 import javafx.application.Application;
@@ -28,12 +23,19 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import model.Channel;
 import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import view.Icon;
 import view.Theme;
+import view.dialog.AboutDialog;
+import view.dialog.ConfirmationDialog;
+import view.dialog.ErrorDialog;
+import view.dialog.ExceptionDialog;
+import view.dialog.ProgressDialog;
+import view.pane.VideoPane;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,8 +49,8 @@ import java.util.stream.Collectors;
  * Controller for Subscription Updater.
  *
  * @author Alkisum
- * @version 2.0
- * @since 19/04/15
+ * @version 2.2
+ * @since 1.0
  */
 public class Updater implements Initializable {
 
@@ -88,6 +90,11 @@ public class Updater implements Initializable {
      * or -1 for unwatched videos.
      */
     private int mPostRefreshId;
+
+    /**
+     * Task to update the database.
+     */
+    private Task<?> mUpdateTask;
 
     /**
      * RadioMenuItem for classic theme.
@@ -142,7 +149,7 @@ public class Updater implements Initializable {
                                  final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
-            Database.init();
+            mUpdateTask = Database.init();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
@@ -172,6 +179,47 @@ public class Updater implements Initializable {
                         refreshVideoList();
                     }
                 });
+    }
+
+    /**
+     * Update the database if necessary.
+     */
+    public final void updateDatabase() {
+        if (mUpdateTask == null) {
+            return;
+        }
+        try {
+            ProgressDialog progressDialog = new ProgressDialog();
+
+            mUpdateTask.setOnSucceeded(t -> {
+            progressDialog.dismiss();
+            refreshVideoList();
+        });
+
+        mUpdateTask.setOnFailed(t -> {
+            progressDialog.dismiss();
+            refreshVideoList();
+            try {
+                throw mUpdateTask.getException();
+            } catch (Throwable throwable) {
+                ExceptionDialog.show(throwable);
+                LOGGER.error(throwable);
+                throwable.printStackTrace();
+            }
+        });
+            Window window = mScene.getWindow();
+
+            double x = window.getX() + window.getWidth() / 2
+                    - ProgressDialog.WIDTH / 2;
+            double y = window.getY() + window.getHeight() / 2
+                    - ProgressDialog.HEIGHT / 2;
+            progressDialog.show(mUpdateTask, x, y);
+            new Thread(mUpdateTask).start();
+        } catch (IOException e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -318,7 +366,7 @@ public class Updater implements Initializable {
             mButtonRefresh.setDisable(false);
         });
 
-        final RssReader finalRssReader = rssReader;
+        final RssReader finalRssReaderOnFailed = rssReader;
         rssReader.setOnFailed(t -> {
             try {
                 mProgressMessage.textProperty().unbind();
@@ -326,7 +374,7 @@ public class Updater implements Initializable {
                 mProgressMessage.setText("");
                 mProgressBar.setProgress(0);
                 mProgressBar.setVisible(false);
-                throw finalRssReader.getException();
+                throw finalRssReaderOnFailed.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
                 LOGGER.error(throwable);

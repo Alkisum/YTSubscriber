@@ -5,7 +5,7 @@ package exception;
  *
  * @author Alkisum
  * @version 1.0
- * @since 27/04/15.
+ * @since 1.0
  */
 public class ExceptionHandler extends Exception {
 

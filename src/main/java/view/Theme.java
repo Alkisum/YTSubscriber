@@ -8,8 +8,8 @@ import java.io.IOException;
  * Class handling themes.
  *
  * @author Alkisum
- * @version 2.0
- * @since 12/03/16.
+ * @version 2.2
+ * @since 2.0
  */
 public final class Theme {
 
@@ -21,20 +21,22 @@ public final class Theme {
     /**
      * Classic CSS for Updater.
      */
-    private static final String CLASSIC_UPDATER_CSS =
-            "/updater_classic.css";
+    private static final String CLASSIC_UPDATER_CSS = "/updater_classic.css";
 
     /**
      * Classic CSS for Manager.
      */
-    private static final String CLASSIC_MANAGER_CSS =
-            "/manager_classic.css";
+    private static final String CLASSIC_MANAGER_CSS = "/manager_classic.css";
 
     /**
      * Classic CSS for About dialog.
      */
-    private static final String CLASSIC_ABOUT_CSS =
-            "/about_classic.css";
+    private static final String CLASSIC_ABOUT_CSS = "/about_classic.css";
+
+    /**
+     * Classic CSS for Progress dialog.
+     */
+    private static final String CLASSIC_PROGRESS_CSS = "/progress_classic.css";
 
     /**
      * Identifier for Dark theme.
@@ -55,6 +57,11 @@ public final class Theme {
      * Dark CSS for About dialog.
      */
     private static final String DARK_ABOUT_CSS = "/about_dark.css";
+
+    /**
+     * Dark CSS for Progress dialog.
+     */
+    private static final String DARK_PROGRESS_CSS = "/progress_dark.css";
 
     /**
      * Theme constructor.
@@ -142,6 +149,21 @@ public final class Theme {
                 return DARK_ABOUT_CSS;
             default:
                 return CLASSIC_ABOUT_CSS;
+        }
+    }
+
+    /**
+     * @param theme Theme
+     * @return Progress CSS according to the given theme
+     */
+    public static String getProgressCss(final String theme) {
+        switch (theme) {
+            case CLASSIC:
+                return CLASSIC_PROGRESS_CSS;
+            case DARK:
+                return DARK_PROGRESS_CSS;
+            default:
+                return CLASSIC_PROGRESS_CSS;
         }
     }
 }

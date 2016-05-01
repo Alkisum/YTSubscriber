@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author Alkisum
  * @version 1.0
- * @since 10/11/15.
+ * @since 1.0
  */
 public class OpmlReader extends Task<List<Channel>> {
 

@@ -16,7 +16,7 @@ import java.io.StringWriter;
  *
  * @author Alkisum
  * @version 2.0
- * @since 28/04/15.
+ * @since 1.0
  */
 public final class ExceptionDialog {
 

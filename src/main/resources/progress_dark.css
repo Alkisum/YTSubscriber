@@ -1,0 +1,8 @@
+.root {
+    -fx-base: rgb(50, 50, 50);
+    -fx-background: rgb(50, 50, 50);
+    -fx-control-inner-background: rgb(50, 50, 50);
+    -fx-accent: #8cbc65;
+    -fx-box-border: #292929;
+    -fx-light-text-color: #cacaca;
+}

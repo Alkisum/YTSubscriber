@@ -3,6 +3,6 @@
  *
  * @author Alkisum
  * @version 1.0
- * @since 19/04/15.
+ * @since 1.0
  */
 package model;

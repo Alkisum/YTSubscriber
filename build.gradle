@@ -7,7 +7,7 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'com.alkisum.javafx.ytsubscriber'
-version '2.1'
+version '2.2'
 mainClassName = 'main.Main'
 
 sourceCompatibility = 1.8
@@ -21,6 +21,7 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.5'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
     compile 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+    compile 'org.jsoup:jsoup:1.8.3'
 }
 
 shadowJar {

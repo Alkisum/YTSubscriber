@@ -1,16 +1,19 @@
 package model;
 
 import config.Config;
+import org.jsoup.Jsoup;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 
 /**
  * Class defining video.
  *
  * @author Alkisum
- * @version 1.0
- * @since 14/05/15.
+ * @version 2.2
+ * @since 1.0
  */
 public class Video {
 
@@ -72,6 +75,11 @@ public class Video {
     private final int mChannelId;
 
     /**
+     * Video duration.
+     */
+    private long mDuration;
+
+    /**
      * Video constructor.
      *
      * @param title        Video title
@@ -79,15 +87,17 @@ public class Video {
      * @param date         Video published date
      * @param thumbnailUrl Thumbnail URL
      * @param channelId    Channel's video id
+     * @param duration     Video duration
      */
     public Video(final String title, final String url,
                  final String date, final String thumbnailUrl,
-                 final int channelId) {
+                 final int channelId, final long duration) {
         mTitle = title;
         mUrl = url;
         mDate = date;
         mThumbnailUrl = thumbnailUrl;
         mChannelId = channelId;
+        mDuration = duration;
     }
 
     /**
@@ -101,11 +111,12 @@ public class Video {
      * @param thumbnail    Thumbnail fail
      * @param watched      True if the video has been watched, false otherwise
      * @param channelId    Channel's video id
+     * @param duration     Video duration
      */
     public Video(final int id, final String title, final String url,
                  final String date, final String thumbnailUrl,
                  final File thumbnail, final boolean watched,
-                 final int channelId) {
+                 final int channelId, final long duration) {
         mId = id;
         mTitle = title;
         mUrl = url;
@@ -114,6 +125,7 @@ public class Video {
         mThumbnail = thumbnail;
         mWatched = watched;
         mChannelId = channelId;
+        mDuration = duration;
     }
 
     /**
@@ -177,5 +189,48 @@ public class Video {
      */
     public final int getChannelId() {
         return mChannelId;
+    }
+
+    /**
+     * @return Video duration
+     */
+    public final long getDuration() {
+        return mDuration;
+    }
+
+    /**
+     * @param duration Video duration to set
+     */
+    public final void setDuration(final long duration) {
+        mDuration = duration;
+    }
+
+    /**
+     * @return Formatted video duration
+     */
+    public final String getFormatDuration() {
+        if (mDuration >= 3600) {
+            return String.format("%d:%02d:%02d",
+                    mDuration / 3600,
+                    (mDuration % 3600) / 60,
+                    (mDuration % 60));
+        } else {
+            return String.format("%d:%02d",
+                    (mDuration % 3600) / 60,
+                    (mDuration % 60));
+        }
+    }
+
+    /**
+     * Retrieve duration from YouTube page.
+     *
+     * @param url URL of YouTube page
+     * @return Duration of the video
+     * @throws IOException The YouTube page has not been found
+     */
+    public static long retrieveDuration(final String url) throws IOException {
+        String duration = Jsoup.connect(url).get().getElementsByAttributeValue(
+                "itemprop", "duration").attr("content");
+        return Duration.parse(duration).getSeconds();
     }
 }

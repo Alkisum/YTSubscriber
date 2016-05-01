@@ -21,8 +21,8 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 1.0
- * @since 14/05/15.
+ * @version 2.2
+ * @since 1.0
  */
 public class RssReader extends Task<Void> {
 
@@ -131,12 +131,16 @@ public class RssReader extends Task<Void> {
 
                     if (url != null && !Database.videoExists(url)) {
 
+                        // Duration
+                        long duration = Video.retrieveDuration(url);
+
                         videos.add(new Video(
                                 title,
                                 url,
                                 dateToInsert,
                                 thumbnail,
-                                channel.getId()));
+                                channel.getId(),
+                                duration));
                     }
 
                     if (url != null) {

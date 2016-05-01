@@ -21,8 +21,8 @@ import java.util.List;
  * Pane extending GridPane and containing Channel attributes.
  *
  * @author Alkisum
- * @version 2.0
- * @since 20/04/15.
+ * @version 2.2
+ * @since 1.0
  */
 public class ChannelPane extends GridPane {
 
@@ -83,10 +83,10 @@ public class ChannelPane extends GridPane {
             Tooltip tooltip;
             if (channel.isSubscribed()) {
                 tooltip = new Tooltip("Disable subscription");
-                subPath = Icon.getIcon(Icon.SUB_OFF);
+                subPath = Icon.getIcon(Icon.SUB_ON);
             } else {
                 tooltip = new Tooltip("Enable subscription");
-                subPath = Icon.getIcon(Icon.SUB_ON);
+                subPath = Icon.getIcon(Icon.SUB_OFF);
             }
             buttonSubscribed.setTooltip(tooltip);
             Image imageSubscribed = new Image(getClass().getResourceAsStream(

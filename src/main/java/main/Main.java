@@ -18,8 +18,8 @@ import java.io.IOException;
  * Main class.
  *
  * @author Alkisum
- * @version 2.1
- * @since 19/04/15
+ * @version 2.2
+ * @since 1.0
  */
 public class Main extends Application {
 
@@ -53,9 +53,13 @@ public class Main extends Application {
         primaryStage.getIcons().add(new Image(
                 getClass().getResourceAsStream("/icons/app.png")));
         primaryStage.setScene(scene);
-        primaryStage.show();
 
         setWindow(scene);
+
+        updater.updateDatabase();
+
+        primaryStage.show();
+
         primaryStage.setOnCloseRequest(event -> {
             double width = scene.getWindow().getWidth();
             double height = scene.getWindow().getHeight();

@@ -7,7 +7,7 @@ import javafx.scene.control.Alert;
  *
  * @author Alkisum
  * @version 2.0
- * @since 29/11/15.
+ * @since 1.0
  */
 public final class ErrorDialog {
 

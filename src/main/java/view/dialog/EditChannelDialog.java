@@ -22,7 +22,7 @@ import java.util.Optional;
  *
  * @author Alkisum
  * @version 2.0
- * @since 19/04/15.
+ * @since 1.0
  */
 public final class EditChannelDialog {
 
