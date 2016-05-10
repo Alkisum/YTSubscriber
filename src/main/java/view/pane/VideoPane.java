@@ -1,6 +1,7 @@
 package view.pane;
 
 import controller.Updater;
+import javafx.geometry.HPos;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
 import view.dialog.ExceptionDialog;
@@ -35,7 +36,7 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 2.3
  * @since 1.0
  */
 public class VideoPane extends GridPane {
@@ -228,6 +229,7 @@ public class VideoPane extends GridPane {
             duration = new Label(video.getFormatDuration());
         }
         duration.setStyle("-fx-font-weight: bold");
+        GridPane.setHalignment(duration, HPos.RIGHT);
 
         // YouTube
         ImageView youtube = new ImageView(new Image(
