@@ -19,7 +19,7 @@ import java.util.Optional;
  * Dialog to add a channel.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 2.4
  * @since 1.0
  */
 public final class AddChannelDialog {
@@ -66,14 +66,12 @@ public final class AddChannelDialog {
         applyButton.setDisable(true);
 
         // Do some validation (using the Java 8 lambda syntax).
-        name.textProperty().addListener((observable, oldValue, newValue) -> {
-            applyButton.setDisable(newValue.trim().isEmpty()
-                    || urlId.getText().isEmpty());
-        });
-        urlId.textProperty().addListener((observable, oldValue, newValue) -> {
-            applyButton.setDisable(newValue.trim().isEmpty()
-                    || name.getText().isEmpty());
-        });
+        name.textProperty().addListener((observable, oldValue, newValue) ->
+                applyButton.setDisable(newValue.trim().isEmpty()
+                        || urlId.getText().isEmpty()));
+        urlId.textProperty().addListener((observable, oldValue, newValue) ->
+                applyButton.setDisable(newValue.trim().isEmpty()
+                        || name.getText().isEmpty()));
 
         dialog.getDialogPane().setContent(grid);
 

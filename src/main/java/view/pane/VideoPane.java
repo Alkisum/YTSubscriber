@@ -36,7 +36,7 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 2.3
+ * @version 2.4
  * @since 1.0
  */
 public class VideoPane extends GridPane {
@@ -284,7 +284,7 @@ public class VideoPane extends GridPane {
             add(youtube, 3, row);
             add(watched, 4, row);
             add(delete, 5, row++);
-            add(separator, 0, row++);
+            add(separator, 0, row);
         });
     }
 

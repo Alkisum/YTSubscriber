@@ -43,13 +43,12 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 /**
  * Controller for Subscription Updater.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 2.4
  * @since 1.0
  */
 public class Updater implements Initializable {
@@ -356,11 +355,11 @@ public class Updater implements Initializable {
             List<Channel> notFoundChannels =
                     finalRssReaderOnSuccess.getNotFoundChannels();
             if (!notFoundChannels.isEmpty()) {
-                String message = "";
+                StringBuilder message = new StringBuilder();
                 for (Channel channel : notFoundChannels) {
-                    message += channel.getName() + "\n";
+                    message.append(channel.getName()).append("\n");
                 }
-                ErrorDialog.show("Not found channels", message);
+                ErrorDialog.show("Not found channels", message.toString());
             }
 
             mButtonRefresh.setDisable(false);
@@ -445,8 +444,7 @@ public class Updater implements Initializable {
     public final void refreshChannelList() {
         try {
             ObservableList<Channel> items = FXCollections.observableArrayList();
-            List<Channel> channels = Database.getAllChannels();
-            items.addAll(channels.stream().collect(Collectors.toList()));
+            items.addAll(Database.getAllChannels());
             mListViewChannel.setItems(items);
             mButtonSubscriptions.setText("Subscriptions ("
                     + Database.countUnwatchedVideos() + ")");

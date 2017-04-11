@@ -11,14 +11,12 @@
              GridPane.columnSpan="2"
              GridPane.hgrow="ALWAYS">
 
-        <Menu text="_File"
-              mnemonicParsing="true">
+        <Menu text="_File">
             <MenuItem text="Exit"
                       onAction="#onExitClicked"/>
         </Menu>
 
-        <Menu text="_View"
-              mnemonicParsing="true">
+        <Menu text="_View">
             <Menu text="Theme">
                 <fx:define>
                     <ToggleGroup fx:id="themes"/>
@@ -33,20 +31,17 @@
                                toggleGroup="$themes"/>
             </Menu>
         </Menu>
-        <Menu text="_Channel"
-              mnemonicParsing="true">
+        <Menu text="_Channel">
             <MenuItem text="Manage..."
                       onAction="#onManageClicked"/>
         </Menu>
-        <Menu text="V_ideo"
-              mnemonicParsing="true">
+        <Menu text="V_ideo">
             <MenuItem text="Watch all"
                       onAction="#onWatchAllClicked"/>
             <MenuItem text="Unwatch all"
                       onAction="#onUnwatchAllClicked"/>
         </Menu>
-        <Menu text="_Help"
-              mnemonicParsing="true">
+        <Menu text="_Help">
             <MenuItem text="About"
                       onAction="#onAboutClicked"/>
         </Menu>
@@ -66,7 +61,7 @@
                dividerPositions="0.3">
 
         <padding>
-            <Insets bottom="5.0" left="0.0" right="0.0" top="5.0"/>
+            <Insets bottom="5.0" top="5.0"/>
         </padding>
 
         <GridPane hgap="5"
@@ -75,7 +70,7 @@
                   GridPane.vgrow="ALWAYS">
 
             <padding>
-                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+                <Insets left="5.0" right="5.0"/>
             </padding>
 
             <Button fx:id="mButtonSubscriptions"
@@ -118,7 +113,7 @@
                   GridPane.vgrow="ALWAYS">
 
             <padding>
-                <Insets bottom="0.0" left="5.0" right="5.0" top="0.0"/>
+                <Insets left="5.0" right="5.0"/>
             </padding>
 
             <ScrollPane fx:id="mScrollPaneVideo"
