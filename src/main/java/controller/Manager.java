@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * Controller for Channel Manager.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 2.4
  * @since 1.0
  */
 public class Manager implements Initializable {
@@ -290,13 +290,7 @@ public class Manager implements Initializable {
                                            final Channel channel) {
         Button btn = (Button) actionEvent.getSource();
         btn.setDisable(true);
-        try {
-            EditChannelDialog.show(this, btn, channel);
-        } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        EditChannelDialog.show(this, btn, channel);
     }
 
     /**
@@ -328,15 +322,14 @@ public class Manager implements Initializable {
     /**
      * Triggered when a channel is added.
      *
-     * @param name  Channel name
-     * @param urlId Channel id in URL
+     * @param name Channel name
+     * @param ytId Channel YT id
      */
-    public final void onChannelAdded(final String name, final String urlId) {
+    public final void onChannelAdded(final String name, final String ytId) {
         try {
-            Database.insertChannel(name, Channel.getBaseUrl() + urlId, true);
+            Database.insertChannel(name, ytId);
             showChannel(true);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler
-                | IOException e) {
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
@@ -346,17 +339,16 @@ public class Manager implements Initializable {
     /**
      * Triggered when a channel is edited.
      *
-     * @param id    Channel id
-     * @param name  Channel name
-     * @param urlId Channel id in URL
+     * @param id   Channel id
+     * @param name Channel name
+     * @param ytId Channel YT id
      */
     public final void onChannelEdited(final int id, final String name,
-                                      final String urlId) {
+                                      final String ytId) {
         try {
-            Database.updateChannel(id, name, Channel.getBaseUrl() + urlId);
+            Database.updateChannel(id, name, ytId);
             showChannel(true);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler
-                | IOException e) {
+        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();

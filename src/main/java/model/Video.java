@@ -1,10 +1,15 @@
 package model;
 
 import config.Config;
+import database.Database;
+import exception.ExceptionHandler;
 import org.jsoup.Jsoup;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 
@@ -12,10 +17,15 @@ import java.time.Duration;
  * Class defining video.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 2.4
  * @since 1.0
  */
 public class Video {
+
+    /**
+     * Default base URL for videos.
+     */
+    public static final String BASE_URL = "https://www.youtube.com/watch?v=";
 
     /**
      * Date format for video published date.
@@ -45,14 +55,9 @@ public class Video {
     private final String mTitle;
 
     /**
-     * Video URL.
+     * Video published time.
      */
-    private final String mUrl;
-
-    /**
-     * Video published date.
-     */
-    private final String mDate;
+    private long mTime;
 
     /**
      * Thumbnail URL.
@@ -80,24 +85,29 @@ public class Video {
     private long mDuration;
 
     /**
+     * ID used by YT to identify the video.
+     */
+    private String mYtId;
+
+    /**
      * Video constructor.
      *
      * @param title        Video title
-     * @param url          Video URL
-     * @param date         Video published date
+     * @param time         Video published time
      * @param thumbnailUrl Thumbnail URL
      * @param channelId    Channel's video id
      * @param duration     Video duration
+     * @param ytId         YT id
      */
-    public Video(final String title, final String url,
-                 final String date, final String thumbnailUrl,
-                 final int channelId, final long duration) {
+    public Video(final String title, final long time,
+                 final String thumbnailUrl, final int channelId,
+                 final long duration, final String ytId) {
         mTitle = title;
-        mUrl = url;
-        mDate = date;
+        mTime = time;
         mThumbnailUrl = thumbnailUrl;
         mChannelId = channelId;
         mDuration = duration;
+        mYtId = ytId;
     }
 
     /**
@@ -105,27 +115,27 @@ public class Video {
      *
      * @param id           Video id
      * @param title        Video title
-     * @param url          Video URL
-     * @param date         Video published date
+     * @param time         Video published time
      * @param thumbnailUrl Thumbnail URL
-     * @param thumbnail    Thumbnail fail
+     * @param thumbnail    Thumbnail file
      * @param watched      True if the video has been watched, false otherwise
      * @param channelId    Channel's video id
      * @param duration     Video duration
+     * @param ytId         YT id
      */
-    public Video(final int id, final String title, final String url,
-                 final String date, final String thumbnailUrl,
-                 final File thumbnail, final boolean watched,
-                 final int channelId, final long duration) {
+    public Video(final int id, final String title, final long time,
+                 final String thumbnailUrl, final File thumbnail,
+                 final boolean watched, final int channelId,
+                 final long duration, final String ytId) {
         mId = id;
         mTitle = title;
-        mUrl = url;
-        mDate = date;
+        mTime = time;
         mThumbnailUrl = thumbnailUrl;
         mThumbnail = thumbnail;
         mWatched = watched;
         mChannelId = channelId;
         mDuration = duration;
+        mYtId = ytId;
     }
 
     /**
@@ -146,14 +156,21 @@ public class Video {
      * @return Video URL
      */
     public final String getUrl() {
-        return mUrl;
+        return getBaseUrl() + mYtId;
     }
 
     /**
-     * @return Video published date
+     * @return Video published time
      */
-    public final String getDate() {
-        return mDate;
+    public final long getTime() {
+        return mTime;
+    }
+
+    /**
+     * @param time Video published time to set
+     */
+    public final void setTime(final long time) {
+        mTime = time;
     }
 
     /**
@@ -206,6 +223,20 @@ public class Video {
     }
 
     /**
+     * @return YT id
+     */
+    public final String getYtId() {
+        return mYtId;
+    }
+
+    /**
+     * @param ytId YT id to set
+     */
+    public final void setYtId(final String ytId) {
+        mYtId = ytId;
+    }
+
+    /**
      * @return Formatted video duration
      */
     public final String getFormatDuration() {
@@ -232,5 +263,70 @@ public class Video {
         String duration = Jsoup.connect(url).get().getElementsByAttributeValue(
                 "itemprop", "duration").attr("content");
         return Duration.parse(duration).getSeconds();
+    }
+
+    /**
+     * Get the video URL (without id) stored in the configuration file.
+     *
+     * @return Video base URL
+     */
+    private static String getBaseUrl() {
+        try {
+            String baseUrl = Config.getValue(Config.PROP_VIDEO_URL_KEY);
+            if (baseUrl == null) {
+                return BASE_URL;
+            }
+            return baseUrl;
+        } catch (IOException e) {
+            return BASE_URL;
+        }
+    }
+
+    /**
+     * @return SQL command to create the Video table
+     */
+    public static String getCreateTableSql() {
+        return "CREATE TABLE IF NOT EXISTS Video"
+                + "(video_id            INTEGER  PRIMARY KEY AUTOINCREMENT,"
+                + " video_title         TEXT NOT NULL,"
+                + " video_time          TEXT NOT NULL,"
+                + " video_thumbnail_url TEXT NOT NULL,"
+                + " video_watched       INTEGER  NOT NULL,"
+                + " video_channel_id    INTEGER  NOT NULL,"
+                + " video_duration      INTEGER  NOT NULL,"
+                + " video_yt_id         TEXT NOT NULL,"
+                + " FOREIGN KEY(video_channel_id)"
+                + " REFERENCES Channel(channel_id));";
+    }
+
+    /**
+     * @return Column names separated by commas
+     */
+    private static String getColumnNames() {
+        return "video_id, video_title, video_time, video_thumbnail_url, "
+                + "video_watched, video_channel_id, video_duration, "
+                + "video_yt_id";
+    }
+
+    /**
+     * Refresh table structure with a new one.
+     *
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the sql
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static void refresh() throws SQLException, ExceptionHandler,
+            ClassNotFoundException {
+        try (Connection c = Database.getConnection();
+             Statement stmt = c.createStatement()) {
+
+            stmt.executeUpdate("ALTER TABLE Video RENAME TO Video_tmp;");
+            stmt.executeUpdate(getCreateTableSql());
+            stmt.executeUpdate("INSERT INTO Video(" + getColumnNames() + ")"
+                    + " SELECT " + getColumnNames()
+                    + " FROM Video_tmp;");
+            stmt.executeUpdate("DROP TABLE Video_tmp;");
+        }
     }
 }

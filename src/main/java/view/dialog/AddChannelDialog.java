@@ -38,15 +38,11 @@ public final class AddChannelDialog {
      * @param btn     Button that triggered the dialog
      */
     public static void show(final Manager manager, final Button btn) {
-        // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Add Channel");
-
-        // Set the button types.
         dialog.getDialogPane().getButtonTypes().addAll(
                 ButtonType.OK, ButtonType.CANCEL);
 
-        // Create the username and password labels and fields.
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -65,7 +61,6 @@ public final class AddChannelDialog {
         Node applyButton = dialog.getDialogPane().lookupButton(ButtonType.OK);
         applyButton.setDisable(true);
 
-        // Do some validation (using the Java 8 lambda syntax).
         name.textProperty().addListener((observable, oldValue, newValue) ->
                 applyButton.setDisable(newValue.trim().isEmpty()
                         || urlId.getText().isEmpty()));
@@ -75,11 +70,8 @@ public final class AddChannelDialog {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Request focus on the username field by default.
         Platform.runLater(name::requestFocus);
 
-        // Convert the result to a username-password-pair
-        // when the login button is clicked.
         dialog.setResultConverter(dialogButton -> {
             manager.enableButton(btn);
             if (dialogButton == ButtonType.OK) {

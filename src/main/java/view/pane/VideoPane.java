@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -110,9 +111,9 @@ public class VideoPane extends GridPane {
         setVgap(5);
         setPadding(new Insets(5, 10, 5, 10));
 
-        Task<List<Video>> task = new Task<List<Video>>() {
+        Task<Void> task = new Task<Void>() {
             @Override
-            protected List<Video> call() throws Exception {
+            protected Void call() throws Exception {
                 int row = 0;
                 for (int i = 0; i < mVideos.size(); i++) {
                     updateProgress(i + 1, mVideos.size());
@@ -120,6 +121,10 @@ public class VideoPane extends GridPane {
                             + "...");
                     addVideo(mVideos.get(i), row);
                     row += ROW_COUNT;
+                    if (i > 100) {
+                        // Do not list more than a 100 videos
+                        return null;
+                    }
                 }
                 return null;
             }
@@ -215,7 +220,7 @@ public class VideoPane extends GridPane {
 
         // Date
         Label date = new Label(new PrettyTime().format(
-                Video.DATE_FORMAT.parse(video.getDate())));
+                new Date(video.getTime())));
         date.setStyle("-fx-font-style: italic");
         date.setAlignment(Pos.CENTER_LEFT);
         setHgrow(date, Priority.ALWAYS);

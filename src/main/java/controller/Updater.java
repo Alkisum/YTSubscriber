@@ -1,5 +1,6 @@
 package controller;
 
+import config.Config;
 import controller.tasks.RssReader;
 import database.Database;
 import exception.ExceptionHandler;
@@ -42,6 +43,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Queue;
 import java.util.ResourceBundle;
 
 /**
@@ -93,7 +95,12 @@ public class Updater implements Initializable {
     /**
      * Task to update the database.
      */
-    private Task<?> mUpdateTask;
+    private Queue<Task<?>> mUpdateTasks;
+
+    /**
+     * Current task to update the database.
+     */
+    private Task<?> mCurrentUpdateTask;
 
     /**
      * RadioMenuItem for classic theme.
@@ -148,14 +155,16 @@ public class Updater implements Initializable {
                                  final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
-            mUpdateTask = Database.init();
+            mUpdateTasks = Database.init();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
         }
 
-        setGui();
+        if (mUpdateTasks == null) {
+            setGui();
+        }
     }
 
     /**
@@ -184,36 +193,52 @@ public class Updater implements Initializable {
      * Update the database if necessary.
      */
     public final void updateDatabase() {
-        if (mUpdateTask == null) {
+        if (mUpdateTasks == null) {
             return;
         }
+        mCurrentUpdateTask = mUpdateTasks.poll();
+
+        // All update tasks succeeded
+        if (mCurrentUpdateTask == null) {
+            setGui();
+            try {
+                Config.setValue(Config.PROP_SCHEMA_VERSION,
+                        String.valueOf(Database.SCHEMA_VERSION));
+            } catch (IOException e) {
+                ExceptionDialog.show(e);
+                LOGGER.error(e);
+                e.printStackTrace();
+            }
+            return;
+        }
+
+        // Start next update task
         try {
             ProgressDialog progressDialog = new ProgressDialog();
 
-            mUpdateTask.setOnSucceeded(t -> {
-            progressDialog.dismiss();
-            refreshVideoList();
-        });
+            mCurrentUpdateTask.setOnSucceeded(t -> {
+                progressDialog.dismiss();
+                updateDatabase();
+            });
 
-        mUpdateTask.setOnFailed(t -> {
-            progressDialog.dismiss();
-            refreshVideoList();
-            try {
-                throw mUpdateTask.getException();
-            } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
-            }
-        });
+            mCurrentUpdateTask.setOnFailed(t -> {
+                progressDialog.dismiss();
+                try {
+                    throw mCurrentUpdateTask.getException();
+                } catch (Throwable throwable) {
+                    ExceptionDialog.show(throwable);
+                    LOGGER.error(throwable);
+                    throwable.printStackTrace();
+                }
+            });
             Window window = mScene.getWindow();
 
             double x = window.getX() + window.getWidth() / 2
                     - ProgressDialog.WIDTH / 2;
             double y = window.getY() + window.getHeight() / 2
                     - ProgressDialog.HEIGHT / 2;
-            progressDialog.show(mUpdateTask, x, y);
-            new Thread(mUpdateTask).start();
+            progressDialog.show(mCurrentUpdateTask, x, y);
+            new Thread(mCurrentUpdateTask).start();
         } catch (IOException e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);

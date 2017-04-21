@@ -88,7 +88,6 @@ public final class ExceptionDialog {
         expContent.add(textArea, 0, 1);
         expContent.setVgap(10.0);
 
-        // Set expandable Exception into the dialog pane.
         alert.getDialogPane().setExpandableContent(expContent);
         alert.getDialogPane().setPrefWidth(WIDTH);
 

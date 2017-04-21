@@ -1,6 +1,7 @@
 package config;
 
 import model.Channel;
+import model.Video;
 import view.Theme;
 
 import java.io.File;
@@ -15,7 +16,7 @@ import java.util.Properties;
  * Class defining the application configuration.
  *
  * @author Alkisum
- * @version 2.1
+ * @version 2.4
  * @since 1.0
  */
 public final class Config {
@@ -31,6 +32,16 @@ public final class Config {
      */
     private static final String CONFIG_FILE_PATH = USER_DIR
             + "config.properties";
+
+    /**
+     * Key for video URL in properties file.
+     */
+    public static final String PROP_VIDEO_URL_KEY = "videoUrl";
+
+    /**
+     * Default value for video URL in properties file.
+     */
+    private static final String PROP_VIDEO_URL_VALUE = Video.BASE_URL;
 
     /**
      * Key for channel URL in properties file.
@@ -73,10 +84,33 @@ public final class Config {
     public static final String PROP_Y_KEY = "windowY";
 
     /**
+     * Key for schema version in properties file.
+     */
+    public static final String PROP_SCHEMA_VERSION = "schemaVersion";
+
+    /**
      * Config constructor.
      */
     private Config() {
 
+    }
+
+    /**
+     * Set default values to config file if the key does not exist yet.
+     *
+     * @throws IOException An exception occurred while reading or writing the
+     *                     file
+     */
+    public static void setDefaultValues() throws IOException {
+        if (getValue(PROP_VIDEO_URL_KEY) == null) {
+            setValue(PROP_VIDEO_URL_KEY, PROP_VIDEO_URL_VALUE);
+        }
+        if (getValue(PROP_CHANNEL_URL_KEY) == null) {
+            setValue(PROP_CHANNEL_URL_KEY, PROP_CHANNEL_URL_VALUE);
+        }
+        if (getValue(PROP_THEME_KEY) == null) {
+            setValue(PROP_THEME_KEY, PROP_THEME_VALUE);
+        }
     }
 
     /**
@@ -101,6 +135,7 @@ public final class Config {
         if (configFile.createNewFile()) {
             Properties prop = new Properties();
             try (OutputStream output = new FileOutputStream(CONFIG_FILE_PATH)) {
+                prop.setProperty(PROP_VIDEO_URL_KEY, PROP_VIDEO_URL_VALUE);
                 prop.setProperty(PROP_CHANNEL_URL_KEY, PROP_CHANNEL_URL_VALUE);
                 prop.setProperty(PROP_THEME_KEY, PROP_THEME_VALUE);
                 prop.store(output, null);

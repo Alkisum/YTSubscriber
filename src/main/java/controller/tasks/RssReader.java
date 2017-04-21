@@ -21,7 +21,7 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 2.4
  * @since 1.0
  */
 public class RssReader extends Task<Void> {
@@ -62,9 +62,9 @@ public class RssReader extends Task<Void> {
 
             Channel channel = mChannels.get(c);
 
-            // Create a URL list to check whether there are videos in the
+            // Create a YT ID list to check whether there are videos in the
             // database that have been watched and not in the feed anymore
-            List<String> urls = new ArrayList<>();
+            List<String> ytIds = new ArrayList<>();
 
             DocumentBuilderFactory dbFactory =
                     DocumentBuilderFactory.newInstance();
@@ -99,6 +99,10 @@ public class RssReader extends Task<Void> {
                     String title = eltEntry.getElementsByTagName("title")
                             .item(0).getTextContent();
 
+                    // YT ID
+                    String ytId = eltEntry.getElementsByTagName("yt:videoId")
+                            .item(0).getTextContent();
+
                     // URL
                     Node nodeUrl = eltEntry.getElementsByTagName("link")
                             .item(0);
@@ -111,9 +115,7 @@ public class RssReader extends Task<Void> {
                     // Date
                     String date = eltEntry.getElementsByTagName("published")
                             .item(0).getTextContent();
-                    Date dateToFormat = PUBLISHED_FORMAT.parse(date);
-                    String dateToInsert = Video.DATE_FORMAT.format(
-                            dateToFormat);
+                    Date parsedDate = PUBLISHED_FORMAT.parse(date);
 
                     // Thumbnail
                     Node nodeMedia = eltEntry.getElementsByTagName(
@@ -129,26 +131,29 @@ public class RssReader extends Task<Void> {
                         }
                     }
 
-                    if (url != null && !Database.videoExists(url)) {
+                    if (ytId != null && !Database.videoExists(ytId)) {
 
                         // Duration
-                        long duration = Video.retrieveDuration(url);
+                        long duration = 0;
+                        if (url != null) {
+                            duration = Video.retrieveDuration(url);
+                        }
 
                         videos.add(new Video(
                                 title,
-                                url,
-                                dateToInsert,
+                                parsedDate.getTime(),
                                 thumbnail,
                                 channel.getId(),
-                                duration));
+                                duration,
+                                ytId));
                     }
 
-                    if (url != null) {
-                        urls.add(url);
+                    if (ytId != null) {
+                        ytIds.add(ytId);
                     }
                 }
             }
-            channel.clean(urls);
+            channel.clean(ytIds);
         }
         if (!videos.isEmpty()) {
             updateProgress(-1, 0);

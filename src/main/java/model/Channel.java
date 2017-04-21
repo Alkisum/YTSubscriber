@@ -7,14 +7,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
  * Class defining channel.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 2.4
  * @since 1.0
  */
 public class Channel {
@@ -41,11 +43,6 @@ public class Channel {
     private final String mName;
 
     /**
-     * Channel URL.
-     */
-    private final String mUrl;
-
-    /**
      * Channel subscribed flag.
      */
     private final boolean mSubscribed;
@@ -56,20 +53,25 @@ public class Channel {
     private boolean mChecked;
 
     /**
+     * YT id.
+     */
+    private String mYtId;
+
+    /**
      * Channel constructor.
      *
      * @param id         Channel id
      * @param name       Channel name
-     * @param url        Channel URL
      * @param subscribed Channel subscribed flag
+     * @param ytId       YT id
      */
-    public Channel(final int id, final String name, final String url,
-                   final boolean subscribed) {
+    public Channel(final int id, final String name, final boolean subscribed,
+                   final String ytId) {
         mId = id;
         mName = name;
-        mUrl = url;
         mSubscribed = subscribed;
         mChecked = false;
+        mYtId = ytId;
     }
 
     @Override
@@ -88,16 +90,16 @@ public class Channel {
      * Clean the channel from the videos watched and not existing anymore
      * in the RSS Feeds.
      *
-     * @param urlList List of video URL existing in the RSS Feed.
+     * @param ytIdList List of video YT id existing in the RSS Feed.
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
      * @throws SQLException           Exception while executing a statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public final void clean(final List<String> urlList)
+    public final void clean(final List<String> ytIdList)
             throws SQLException, ClassNotFoundException, ExceptionHandler {
         List<Video> videoList = Database.getAllVideosByChannel(mId);
         for (Video video : videoList) {
-            if (!urlList.contains(video.getUrl()) && video.isWatched()) {
+            if (!ytIdList.contains(video.getYtId()) && video.isWatched()) {
                 Database.deleteVideo(video);
             }
         }
@@ -121,7 +123,7 @@ public class Channel {
      * @return Channel URL
      */
     public final String getUrl() {
-        return mUrl;
+        return getBaseUrl() + mYtId;
     }
 
     /**
@@ -146,16 +148,74 @@ public class Channel {
     }
 
     /**
+     * @return YT id
+     */
+    public final String getYtId() {
+        return mYtId;
+    }
+
+    /**
+     * @param ytId YT id to set
+     */
+    public final void setYtId(final String ytId) {
+        mYtId = ytId;
+    }
+
+    /**
      * Get the feed URL (without id) stored in the configuration file.
      *
      * @return Feed base URL
-     * @throws IOException An exception occurred while getting the value
      */
-    public static String getBaseUrl() throws IOException {
-        String baseUrl = Config.getValue(Config.PROP_CHANNEL_URL_KEY);
-        if (baseUrl == null) {
+    public static String getBaseUrl() {
+        try {
+            String baseUrl = Config.getValue(Config.PROP_CHANNEL_URL_KEY);
+            if (baseUrl == null) {
+                return BASE_URL;
+            }
+            return baseUrl;
+        } catch (IOException e) {
             return BASE_URL;
         }
-        return baseUrl;
+    }
+
+    /**
+     * @return SQL command to create the Channel table
+     */
+    public static String getCreateTableSql() {
+        return "CREATE TABLE IF NOT EXISTS Channel"
+                + "(channel_id         INTEGER  PRIMARY KEY AUTOINCREMENT,"
+                + " channel_name       TEXT NOT NULL,"
+                + " channel_yt_id      TEXT NOT NULL,"
+                + " channel_subscribed INTEGER  NOT NULL);";
+    }
+
+    /**
+     * @return Column names separated by commas
+     */
+    private static String getColumnNames() {
+        return "channel_id, channel_name, channel_yt_id, channel_subscribed";
+    }
+
+    /**
+     * Refresh table structure with a new one.
+     *
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the sql
+     *                                statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static void refresh() throws SQLException, ExceptionHandler,
+            ClassNotFoundException {
+        try (Connection c = Database.getConnection();
+             Statement stmt = c.createStatement()) {
+            stmt.executeUpdate("PRAGMA foreign_keys = OFF");
+            stmt.executeUpdate("ALTER TABLE Channel RENAME TO Channel_tmp;");
+            stmt.executeUpdate(getCreateTableSql());
+            stmt.executeUpdate("INSERT INTO Channel(" + getColumnNames() + ")"
+                    + " SELECT " + getColumnNames()
+                    + " FROM Channel_tmp;");
+            stmt.executeUpdate("DROP TABLE Channel_tmp;");
+            stmt.executeUpdate("PRAGMA foreign_keys = ON");
+        }
     }
 }

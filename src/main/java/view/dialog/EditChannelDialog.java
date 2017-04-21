@@ -14,7 +14,6 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 import model.Channel;
 
-import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -39,19 +38,14 @@ public final class EditChannelDialog {
      * @param manager  Manager instance
      * @param btn      Button that triggered the dialog
      * @param pChannel Channel to edit
-     * @throws IOException The properties file has not been found
      */
     public static void show(final Manager manager, final Button btn,
-                            final Channel pChannel) throws IOException {
-        // Create the custom dialog.
+                            final Channel pChannel) {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Edit Channel");
-
-        // Set the button types.
         dialog.getDialogPane().getButtonTypes().addAll(
                 ButtonType.OK, ButtonType.CANCEL);
 
-        // Create the username and password labels and fields.
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -70,7 +64,6 @@ public final class EditChannelDialog {
 
         Node applyButton = dialog.getDialogPane().lookupButton(ButtonType.OK);
 
-        // Do some validation (using the Java 8 lambda syntax).
         name.textProperty().addListener((observable, oldValue, newValue) ->
                 applyButton.setDisable(newValue.trim().isEmpty()
                         || urlId.getText().isEmpty()));
@@ -80,11 +73,8 @@ public final class EditChannelDialog {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Request focus on the username field by default.
         Platform.runLater(name::requestFocus);
 
-        // Convert the result to a username-password-pair
-        // when the login button is clicked.
         dialog.setResultConverter(dialogButton -> {
             manager.enableButton(btn);
             if (dialogButton == ButtonType.OK) {

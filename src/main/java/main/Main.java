@@ -18,7 +18,7 @@ import java.io.IOException;
  * Main class.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 2.4
  * @since 1.0
  */
 public class Main extends Application {
@@ -40,6 +40,8 @@ public class Main extends Application {
 
     @Override
     public final void start(final Stage primaryStage) throws Exception {
+        Config.setDefaultValues();
+
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/updater.fxml"));
         Scene scene = new Scene(loader.load(), Updater.WIDTH, Updater.HEIGHT);

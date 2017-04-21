@@ -21,7 +21,7 @@ import java.util.List;
  * Task reading the OPML file to import a list of channels to subscribe.
  *
  * @author Alkisum
- * @version 1.0
+ * @version 2.4
  * @since 1.0
  */
 public class OpmlReader extends Task<List<Channel>> {
@@ -67,7 +67,9 @@ public class OpmlReader extends Task<List<Channel>> {
                     new URL(url).toURI();
                     updateProgress(i + 1, nodeList.getLength());
                     updateMessage("Importing " + name + "...");
-                    Database.insertChannel(name, url, true);
+                    // TODO Test import OPML file
+                    String ytId = url.substring(url.lastIndexOf("=") + 1);
+                    Database.insertChannel(name, ytId);
                 } catch (MalformedURLException | URISyntaxException e) {
                     // Nothing to do here, just don't add the channel
                 }
