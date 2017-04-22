@@ -260,8 +260,13 @@ public class Video {
      * @throws IOException The YouTube page has not been found
      */
     public static long retrieveDuration(final String url) throws IOException {
-        String duration = Jsoup.connect(url).get().getElementsByAttributeValue(
-                "itemprop", "duration").attr("content");
+        String duration = "";
+        int i = 0;
+        while (duration.equals("") && i <= 3) {
+            duration = Jsoup.connect(url).get().getElementsByAttributeValue(
+                    "itemprop", "duration").attr("content");
+            i++;
+        }
         return Duration.parse(duration).getSeconds();
     }
 
