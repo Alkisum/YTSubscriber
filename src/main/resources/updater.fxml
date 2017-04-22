@@ -40,6 +40,8 @@
                       onAction="#onWatchAllClicked"/>
             <MenuItem text="Unwatch all"
                       onAction="#onUnwatchAllClicked"/>
+            <MenuItem text="Delete all"
+                      onAction="#onDeleteAllClicked"/>
         </Menu>
         <Menu text="_Help">
             <MenuItem text="About"

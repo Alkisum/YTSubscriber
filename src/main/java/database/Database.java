@@ -485,7 +485,7 @@ public final class Database {
      *                                statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    static List<Video> getAllVideos()
+    public static List<Video> getAllVideos()
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              Statement stmt = c.createStatement();

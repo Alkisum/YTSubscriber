@@ -2,6 +2,7 @@ package controller;
 
 import config.Config;
 import controller.tasks.RssReader;
+import controller.tasks.VideoDeleter;
 import database.Database;
 import exception.ExceptionHandler;
 import javafx.application.Application;
@@ -93,7 +94,7 @@ public class Updater implements Initializable {
     private int mPostRefreshId;
 
     /**
-     * Task to update the database.
+     * Tasks to update the database.
      */
     private Queue<Task<?>> mUpdateTasks;
 
@@ -419,7 +420,7 @@ public class Updater implements Initializable {
                 "Are you sure you want to set all the videos to watched?",
                 new Task() {
                     @Override
-                    protected Object call() throws Exception {
+                    protected Void call() throws Exception {
                         try {
                             Database.updateVideoWatchState(true);
                             refreshChannelList();
@@ -446,7 +447,7 @@ public class Updater implements Initializable {
                 "Are you sure you want to set all the videos to unwatched?",
                 new Task() {
                     @Override
-                    protected Object call() throws Exception {
+                    protected Void call() throws Exception {
                         try {
                             Database.updateVideoWatchState(false);
                             refreshChannelList();
@@ -461,6 +462,74 @@ public class Updater implements Initializable {
                     }
                 }
         );
+    }
+
+    /**
+     * Triggered when the delete all menu item is clicked.
+     */
+    @FXML
+    public final void onDeleteAllClicked() {
+        ConfirmationDialog.show(
+                "Delete all videos",
+                "Are you sure you want to delete all the videos?",
+                new Task() {
+                    @Override
+                    protected Void call() throws Exception {
+                        deleteAllVideos();
+                        return null;
+                    }
+                }
+        );
+    }
+
+    /**
+     * Delete all videos and their thumbnails.
+     */
+    private void deleteAllVideos() {
+        VideoDeleter videoDeleter = null;
+        try {
+            videoDeleter = new VideoDeleter(Database.getAllVideos());
+        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+
+        if (videoDeleter == null) {
+            return;
+        }
+
+        mProgressMessage.textProperty().bind(videoDeleter.messageProperty());
+        mProgressBar.progressProperty().bind(videoDeleter.progressProperty());
+        mProgressBar.setVisible(true);
+
+        new Thread(videoDeleter).start();
+
+        videoDeleter.setOnSucceeded(t -> {
+            mProgressMessage.textProperty().unbind();
+            mProgressBar.progressProperty().unbind();
+            mProgressMessage.setText("");
+            mProgressBar.setProgress(0);
+            mProgressBar.setVisible(false);
+            refreshChannelList();
+            refreshVideoList();
+        });
+
+        final VideoDeleter finalVideoDeleterOnFailed = videoDeleter;
+        videoDeleter.setOnFailed(t -> {
+            try {
+                mProgressMessage.textProperty().unbind();
+                mProgressBar.progressProperty().unbind();
+                mProgressMessage.setText("");
+                mProgressBar.setProgress(0);
+                mProgressBar.setVisible(false);
+                throw finalVideoDeleterOnFailed.getException();
+            } catch (Throwable throwable) {
+                ExceptionDialog.show(throwable);
+                LOGGER.error(throwable);
+                throwable.printStackTrace();
+            }
+        });
     }
 
     /**
