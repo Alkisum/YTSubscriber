@@ -1,14 +1,11 @@
 package view.pane;
 
 import controller.Updater;
-import javafx.geometry.HPos;
-import view.dialog.ConfirmationDialog;
-import view.dialog.ErrorDialog;
-import view.dialog.ExceptionDialog;
 import database.Database;
 import exception.ExceptionHandler;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -25,10 +22,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ocpsoft.prettytime.PrettyTime;
 import view.Icon;
+import view.dialog.ConfirmationDialog;
+import view.dialog.ErrorDialog;
+import view.dialog.ExceptionDialog;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -169,11 +168,9 @@ public class VideoPane extends GridPane {
      * @throws SQLException           Exception while executing the select
      *                                statement
      * @throws ExceptionHandler       Exception while accessing config directory
-     * @throws ParseException         Exception while parsing the published date
      */
     private void addVideo(final Video video, final int pRow)
-            throws SQLException, ExceptionHandler, ClassNotFoundException,
-            ParseException {
+            throws SQLException, ExceptionHandler, ClassNotFoundException {
 
         // Play icon
         ImageView play = new ImageView(new Image(

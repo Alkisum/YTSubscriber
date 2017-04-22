@@ -67,7 +67,6 @@ public class OpmlReader extends Task<List<Channel>> {
                     new URL(url).toURI();
                     updateProgress(i + 1, nodeList.getLength());
                     updateMessage("Importing " + name + "...");
-                    // TODO Test import OPML file
                     String ytId = url.substring(url.lastIndexOf("=") + 1);
                     Database.insertChannel(name, ytId);
                 } catch (MalformedURLException | URISyntaxException e) {
