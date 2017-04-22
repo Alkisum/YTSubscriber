@@ -64,7 +64,7 @@ public class Updater implements Initializable {
     /**
      * Frame dimensions.
      */
-    public static final int WIDTH = 800, HEIGHT = 600;
+    public static final int WIDTH = 1024, HEIGHT = 768;
 
     /**
      * Identifier for list of unwatched videos.

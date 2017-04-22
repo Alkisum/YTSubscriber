@@ -52,7 +52,7 @@ public class Manager implements Initializable {
     /**
      * Frame dimensions.
      */
-    static final int WIDTH = 800, HEIGHT = 600;
+    static final int WIDTH = 1024, HEIGHT = 768;
 
     /**
      * Stage instance.
