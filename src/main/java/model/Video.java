@@ -1,9 +1,12 @@
 package model;
 
+import com.google.gson.JsonParser;
 import config.Config;
 import database.Database;
 import exception.ExceptionHandler;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,16 +14,18 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class defining video.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 2.5
  * @since 1.0
  */
 public class Video {
+
 
     /**
      * Default base URL for videos.
@@ -263,11 +268,21 @@ public class Video {
         String duration = "";
         int i = 0;
         while (duration.equals("") && i <= 3) {
-            duration = Jsoup.connect(url).get().getElementsByAttributeValue(
-                    "itemprop", "duration").attr("content");
+            Element player = Jsoup.connect(url).get().getElementById("player");
+            Elements scripts = player.getElementsByTag("script");
+            Element script = scripts.get(1);
+            final Pattern pattern = Pattern.compile(
+                    "^.*ytplayer\\.config\\s=\\s(.*)"
+                            + ";ytplayer\\.load\\s=\\sfunction\\(\\).*");
+            final Matcher matcher = pattern.matcher(script.data());
+            if (matcher.find()) {
+                duration = new JsonParser().parse(matcher.group(1))
+                        .getAsJsonObject().getAsJsonObject("args")
+                        .get("length_seconds").getAsString();
+            }
             i++;
         }
-        return Duration.parse(duration).getSeconds();
+        return Long.parseLong(duration);
     }
 
     /**
