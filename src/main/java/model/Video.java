@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * Class defining video.
  *
  * @author Alkisum
- * @version 2.5
+ * @version 2.6
  * @since 1.0
  */
 public class Video {
@@ -270,6 +270,11 @@ public class Video {
         while (duration.equals("") && i <= 3) {
             Element player = Jsoup.connect(url).get().getElementById("player");
             Elements scripts = player.getElementsByTag("script");
+            if (scripts.isEmpty()) {
+                // the duration might not exist for:
+                // - video requiring user to sign in
+                break;
+            }
             Element script = scripts.get(1);
             final Pattern pattern = Pattern.compile(
                     "^.*ytplayer\\.config\\s=\\s(.*)"
@@ -281,6 +286,9 @@ public class Video {
                         .get("length_seconds").getAsString();
             }
             i++;
+        }
+        if (duration.equals("")) {
+            duration = "0";
         }
         return Long.parseLong(duration);
     }
