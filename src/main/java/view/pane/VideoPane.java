@@ -36,7 +36,7 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 2.7
  * @since 1.0
  */
 public class VideoPane extends GridPane {
@@ -110,7 +110,7 @@ public class VideoPane extends GridPane {
         setVgap(5);
         setPadding(new Insets(5, 10, 5, 10));
 
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 int row = 0;
@@ -214,6 +214,9 @@ public class VideoPane extends GridPane {
         setColumnSpan(channelName, 5);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
+        channelName.setStyle("-fx-cursor: hand;");
+        channelName.setOnMouseClicked(
+                event -> mUpdater.selectChannel(video.getChannelId()));
 
         // Date
         Label date = new Label(new PrettyTime().format(

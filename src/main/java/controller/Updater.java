@@ -51,7 +51,7 @@ import java.util.ResourceBundle;
  * Controller for Subscription Updater.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 2.7
  * @since 1.0
  */
 public class Updater implements Initializable {
@@ -566,6 +566,33 @@ public class Updater implements Initializable {
             LOGGER.error(e);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Select the channel in the list view with the given id.
+     *
+     * @param channelId Channel id to select
+     */
+    public final void selectChannel(final int channelId) {
+        int index = getIndexFromListView(channelId);
+        mListViewChannel.scrollTo(index);
+        mListViewChannel.getSelectionModel().select(index);
+    }
+
+    /**
+     * Find the channel with the given id in the list view and return its index.
+     *
+     * @param channelId Channel id to find
+     * @return Index of the channel in the list view
+     */
+    private int getIndexFromListView(final int channelId) {
+        List<Channel> channels = mListViewChannel.getItems();
+        for (int i = 0; i < channels.size(); i++) {
+            if (channelId == channels.get(i).getId()) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
