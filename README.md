@@ -23,6 +23,11 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 + Keep track of your watched video
 
 
+## Screenshots
+
+![](/screenshots/ytsubscriber.png)
+
+
 ## License
 
 Project licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).
