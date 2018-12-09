@@ -28,6 +28,16 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 ![](/screenshots/ytsubscriber.png)
 
 
+## Used libraries
+
++ [Gson](https://github.com/google/gson)
++ [jsoup](https://github.com/jhy/jsoup)
++ [log4j](https://logging.apache.org/log4j/2.x/)
++ [prettytime](https://github.com/ocpsoft/prettytime)
++ [Gradle Shadow](https://github.com/johnrengelman/shadow)
++ [SQLite JDBC Driver](https://github.com/xerial/sqlite-jdbc)
+
+
 ## License
 
 Project licensed under the [MIT license](http://opensource.org/licenses/mit-license.php).
