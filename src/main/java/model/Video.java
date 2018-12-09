@@ -269,10 +269,15 @@ public class Video {
         int i = 0;
         while (duration.equals("") && i <= 3) {
             Element player = Jsoup.connect(url).get().getElementById("player");
+            if (player == null) {
+                // the player element might not exist because of:
+                // - "Viewer discretion is advised" message
+                break;
+            }
             Elements scripts = player.getElementsByTag("script");
             if (scripts.isEmpty()) {
-                // the duration might not exist for:
-                // - video requiring user to sign in
+                // the script element might not exist for:
+                // - videos requiring user to sign in
                 break;
             }
             Element script = scripts.get(1);
