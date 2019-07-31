@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * Class defining video.
  *
  * @author Alkisum
- * @version 2.6
+ * @version 2.9
  * @since 1.0
  */
 public class Video {
@@ -262,9 +262,10 @@ public class Video {
      *
      * @param url URL of YouTube page
      * @return Duration of the video
-     * @throws IOException The YouTube page has not been found
+     * @throws Exception The YouTube page has not been found
+     * or the duration of the video cannot be read from the page
      */
-    public static long retrieveDuration(final String url) throws IOException {
+    public static long retrieveDuration(final String url) throws Exception {
         String duration = "";
         int i = 0;
         while (duration.equals("") && i <= 3) {

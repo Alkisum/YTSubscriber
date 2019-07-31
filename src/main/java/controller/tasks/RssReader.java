@@ -1,6 +1,7 @@
 package controller.tasks;
 
 import database.Database;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import model.Channel;
 import model.Video;
@@ -8,6 +9,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import view.dialog.ErrorDialog;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,7 +23,7 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 2.9
  * @since 1.0
  */
 public class RssReader extends Task<Void> {
@@ -55,6 +57,7 @@ public class RssReader extends Task<Void> {
     protected final Void call() throws Exception {
 
         List<Video> videos = new ArrayList<>();
+        boolean durationError = false;
 
         updateMessage("Initializing...");
 
@@ -95,12 +98,15 @@ public class RssReader extends Task<Void> {
 
                     Element eltEntry = (Element) nodeEntry;
 
-                    // Title
-                    String title = eltEntry.getElementsByTagName("title")
-                            .item(0).getTextContent();
-
                     // YT ID
                     String ytId = eltEntry.getElementsByTagName("yt:videoId")
+                            .item(0).getTextContent();
+                    if (ytId == null) {
+                        continue;
+                    }
+
+                    // Title
+                    String title = eltEntry.getElementsByTagName("title")
                             .item(0).getTextContent();
 
                     // URL
@@ -131,12 +137,16 @@ public class RssReader extends Task<Void> {
                         }
                     }
 
-                    if (ytId != null && !Database.videoExists(ytId)) {
+                    if (!Database.videoExists(ytId)) {
 
                         // Duration
                         long duration = 0;
                         if (url != null) {
-                            duration = Video.retrieveDuration(url);
+                            try {
+                                duration = Video.retrieveDuration(url);
+                            } catch (Exception e) {
+                                durationError = true;
+                            }
                         }
 
                         videos.add(new Video(
@@ -148,9 +158,7 @@ public class RssReader extends Task<Void> {
                                 ytId));
                     }
 
-                    if (ytId != null) {
-                        ytIds.add(ytId);
-                    }
+                    ytIds.add(ytId);
                 }
             }
             channel.clean(ytIds);
@@ -159,6 +167,12 @@ public class RssReader extends Task<Void> {
             updateProgress(-1, 0);
             updateMessage("Downloading thumbnails...");
             Database.insertVideos(videos);
+        }
+
+        // Errors occurred when reading durations
+        if (durationError) {
+            Platform.runLater(() -> ErrorDialog.show("Duration error",
+                    "An error occurred when reading the duration from videos."));
         }
         return null;
     }
