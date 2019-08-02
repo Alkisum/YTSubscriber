@@ -1,5 +1,6 @@
 package controller.tasks;
 
+import config.Config;
 import database.Database;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -23,7 +24,7 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 2.9
+ * @version 3.0
  * @since 1.0
  */
 public class RssReader extends Task<Void> {
@@ -141,9 +142,10 @@ public class RssReader extends Task<Void> {
 
                         // Duration
                         long duration = 0;
-                        if (url != null) {
+                        if (url != null && Config.getValue(
+                                Config.PROP_API_KEY) != null) {
                             try {
-                                duration = Video.retrieveDuration(url);
+                                duration = Video.retrieveDuration(ytId);
                             } catch (Exception e) {
                                 durationError = true;
                             }
@@ -172,7 +174,8 @@ public class RssReader extends Task<Void> {
         // Errors occurred when reading durations
         if (durationError) {
             Platform.runLater(() -> ErrorDialog.show("Duration error",
-                    "An error occurred when reading the duration from videos."));
+                    "An error occurred when reading the duration from videos.")
+            );
         }
         return null;
     }

@@ -1,12 +1,14 @@
 package model;
 
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import config.Config;
 import database.Database;
 import exception.ExceptionHandler;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,18 +16,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.Duration;
 
 /**
  * Class defining video.
  *
  * @author Alkisum
- * @version 2.9
+ * @version 3.0
  * @since 1.0
  */
 public class Video {
-
 
     /**
      * Default base URL for videos.
@@ -85,7 +85,7 @@ public class Video {
     private final int mChannelId;
 
     /**
-     * Video duration.
+     * Video duration in seconds.
      */
     private long mDuration;
 
@@ -95,13 +95,18 @@ public class Video {
     private String mYtId;
 
     /**
+     * OkHttpClient instance.
+     */
+    private static OkHttpClient client = new OkHttpClient();
+
+    /**
      * Video constructor.
      *
      * @param title        Video title
      * @param time         Video published time
      * @param thumbnailUrl Thumbnail URL
      * @param channelId    Channel's video id
-     * @param duration     Video duration
+     * @param duration     Video duration in seconds
      * @param ytId         YT id
      */
     public Video(final String title, final long time,
@@ -125,7 +130,7 @@ public class Video {
      * @param thumbnail    Thumbnail file
      * @param watched      True if the video has been watched, false otherwise
      * @param channelId    Channel's video id
-     * @param duration     Video duration
+     * @param duration     Video duration in seconds
      * @param ytId         YT id
      */
     public Video(final int id, final String title, final long time,
@@ -214,14 +219,14 @@ public class Video {
     }
 
     /**
-     * @return Video duration
+     * @return Video duration in seconds
      */
     public final long getDuration() {
         return mDuration;
     }
 
     /**
-     * @param duration Video duration to set
+     * @param duration Video duration in seconds to set
      */
     public final void setDuration(final long duration) {
         mDuration = duration;
@@ -258,45 +263,42 @@ public class Video {
     }
 
     /**
-     * Retrieve duration from YouTube page.
+     * Retrieve duration using YouTube API
+     * (API key must be set in the configuration file in order to use the API).
      *
-     * @param url URL of YouTube page
-     * @return Duration of the video
-     * @throws Exception The YouTube page has not been found
-     * or the duration of the video cannot be read from the page
+     * @param videoId Video ID to retrieve the duration for
+     * @return Video duration in seconds
+     * @throws IOException An error occurred when reading the API key from the
+     *                     configuration file
      */
-    public static long retrieveDuration(final String url) throws Exception {
-        String duration = "";
-        int i = 0;
-        while (duration.equals("") && i <= 3) {
-            Element player = Jsoup.connect(url).get().getElementById("player");
-            if (player == null) {
-                // the player element might not exist because of:
-                // - "Viewer discretion is advised" message
-                break;
+    public static long retrieveDuration(final String videoId)
+            throws IOException {
+        // Build HTTP request
+        Request request = new Request.Builder()
+                .url("https://www.googleapis.com/youtube/v3/videos?id="
+                        + videoId + "&part=contentDetails&key="
+                        + Config.getValue(Config.PROP_API_KEY))
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            // Get response body
+            ResponseBody responseBody = response.body();
+            if (responseBody == null) {
+                return 0;
             }
-            Elements scripts = player.getElementsByTag("script");
-            if (scripts.isEmpty()) {
-                // the script element might not exist for:
-                // - videos requiring user to sign in
-                break;
-            }
-            Element script = scripts.get(1);
-            final Pattern pattern = Pattern.compile(
-                    "^.*ytplayer\\.config\\s=\\s(.*)"
-                            + ";ytplayer\\.load\\s=\\sfunction\\(\\).*");
-            final Matcher matcher = pattern.matcher(script.data());
-            if (matcher.find()) {
-                duration = new JsonParser().parse(matcher.group(1))
-                        .getAsJsonObject().getAsJsonObject("args")
-                        .get("length_seconds").getAsString();
-            }
-            i++;
+            String body = responseBody.string();
+
+            // Read duration from response body
+            Gson gson = new Gson();
+            JsonObject jsonObject = gson.fromJson(body, JsonObject.class);
+            String durationString = jsonObject.getAsJsonArray("items")
+                    .get(0).getAsJsonObject()
+                    .get("contentDetails").getAsJsonObject()
+                    .get("duration").getAsString();
+
+            // Parse duration and return it in seconds
+            return Duration.parse(durationString).toSeconds();
         }
-        if (duration.equals("")) {
-            duration = "0";
-        }
-        return Long.parseLong(duration);
     }
 
     /**

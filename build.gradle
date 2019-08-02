@@ -7,7 +7,7 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'com.alkisum.javafx.ytsubscriber'
-version '2.8'
+version '3.0.dev'
 mainClassName = 'main.Main'
 
 sourceCompatibility = 1.9
@@ -17,12 +17,12 @@ repositories {
 }
 
 dependencies {
-    compile 'org.xerial:sqlite-jdbc:3.25.2'
-    compile 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
-    compile 'org.jsoup:jsoup:1.11.3'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'org.apache.logging.log4j:log4j-api:2.11.1'
-    compile 'org.apache.logging.log4j:log4j-core:2.11.1'
+    implementation 'org.xerial:sqlite-jdbc:3.25.2'
+    implementation 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.apache.logging.log4j:log4j-api:2.11.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.11.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.0.1'
 }
 
 shadowJar {

@@ -16,7 +16,7 @@ import java.util.Properties;
  * Class defining the application configuration.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 3.0
  * @since 1.0
  */
 public final class Config {
@@ -87,6 +87,11 @@ public final class Config {
      * Key for schema version in properties file.
      */
     public static final String PROP_SCHEMA_VERSION = "schemaVersion";
+
+    /**
+     * Key for API key in properties file.
+     */
+    public static final String PROP_API_KEY = "apiKey";
 
     /**
      * Config constructor.

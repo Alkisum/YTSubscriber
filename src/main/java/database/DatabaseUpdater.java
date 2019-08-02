@@ -1,5 +1,6 @@
 package database;
 
+import config.Config;
 import javafx.concurrent.Task;
 import model.Channel;
 import model.Video;
@@ -10,7 +11,7 @@ import java.util.List;
  * Utility class to update the database.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 3.0
  * @since 2.2
  */
 final class DatabaseUpdater {
@@ -41,7 +42,10 @@ final class DatabaseUpdater {
                 updateProgress(i + 1, videos.size());
                 updateMessage("Updating video duration of "
                         + video.getTitle() + "...");
-                long duration = Video.retrieveDuration(video.getUrl());
+                long duration = 0;
+                if (Config.getValue(Config.PROP_API_KEY) != null) {
+                    duration = Video.retrieveDuration(video.getYtId());
+                }
                 video.setDuration(duration);
             }
             Database.updateVideoDuration(videos);
