@@ -7,7 +7,7 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'com.alkisum.javafx.ytsubscriber'
-version '3.0.dev'
+version '3.0'
 mainClassName = 'main.Main'
 
 sourceCompatibility = 1.9
