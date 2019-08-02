@@ -1,5 +1,6 @@
 package view.pane;
 
+import config.Config;
 import controller.Updater;
 import database.Database;
 import exception.ExceptionHandler;
@@ -36,7 +37,7 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 2.7
+ * @version 3.0
  * @since 1.0
  */
 public class VideoPane extends GridPane {
@@ -294,39 +295,49 @@ public class VideoPane extends GridPane {
     }
 
     /**
-     * Play the video with Livestreamer.
+     * Play the video with Streamlink.
      *
      * @param video Video to play
      */
     private static void playVideo(final Video video) {
         new Thread(new Task<Void>() {
             @Override
-            protected Void call() throws Exception {
-                Process process = null;
-                try {
-                    process = Runtime.getRuntime().exec(
-                            "livestreamer " + video.getUrl() + " best");
-                    process.waitFor();
-                } catch (InterruptedException e) {
-                    ExceptionDialog.show(e);
-                    LOGGER.error(e);
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    ErrorDialog.show("Livestreamer not found",
-                            "Livestreamer cannot be found on your system."
-                                    + "\nPlease, make sure Livestreamer is "
-                                    + "installed."
-                                    + "\n(http://docs.livestreamer.io/)");
-                    LOGGER.error(e);
-                    e.printStackTrace();
-                } finally {
-                    if (process != null) {
-                        process.destroy();
-                    }
-                }
+            protected Void call() {
+                executeStreamlink(video);
                 return null;
             }
         }).start();
+    }
+
+    /**
+     * Execute Streamlink to read the given video.
+     *
+     * @param video Video to play
+     */
+    private static void executeStreamlink(final Video video) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder();
+            List<String> command = new ArrayList<>();
+            command.add("streamlink");
+            if (Config.getValue(Config.PROP_MEDIA_PLAYER) != null) {
+                String mediaPlayer = Config.getValue(Config.PROP_MEDIA_PLAYER);
+                command.add("-p");
+                command.add(mediaPlayer);
+            }
+            command.add(video.getUrl());
+            command.add("best");
+            pb.command(command);
+            pb.start();
+        } catch (IOException e) {
+            Platform.runLater(() -> {
+                ErrorDialog.show("Streamlink not found",
+                        "Streamlink cannot be found on your system."
+                                + "\nPlease, make sure Streamlink is installed."
+                                + "\n(https://streamlink.github.io/)");
+                LOGGER.error(e);
+                e.printStackTrace();
+            });
+        }
     }
 
     /**
@@ -365,7 +376,7 @@ public class VideoPane extends GridPane {
     private Task deleteVideo(final Video video) {
         return new Task() {
             @Override
-            protected Object call() throws Exception {
+            protected Object call() {
                 try {
                     Database.deleteVideo(video);
                     mUpdater.refreshVideoList();

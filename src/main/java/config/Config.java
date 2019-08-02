@@ -94,6 +94,11 @@ public final class Config {
     public static final String PROP_API_KEY = "apiKey";
 
     /**
+     * Key for media player to use when playing a video with Streamlink.
+     */
+    public static final String PROP_MEDIA_PLAYER = "mediaPlayer";
+
+    /**
      * Config constructor.
      */
     private Config() {

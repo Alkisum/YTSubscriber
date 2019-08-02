@@ -5,8 +5,8 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 
 ## Requirements
 
-+ [Java 8](http://www.java.com/en/download/)
-+ [Livestreamer](http://docs.livestreamer.io/install.html) only for watching the videos on your video player
++ [Java](http://www.java.com/en/download/)
++ [Streamlink](https://streamlink.github.io/) only for watching the videos on your video player
 
 
 ## Installation
