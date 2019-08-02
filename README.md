@@ -23,6 +23,17 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 + Keep track of your watched video
 
 
+## Configuration
+
+```
+# Your YouTube API key to read the videos duration
+apiKey=
+
+# Media player you want to use to play the videos
+mediaPlayer=
+```
+
+
 ## Screenshots
 
 ![](/screenshots/ytsubscriber.png)
@@ -31,7 +42,7 @@ YTSubscriber is a JavaFX application allowing the user to follow YouTube channel
 ## Used libraries
 
 + [Gson](https://github.com/google/gson)
-+ [jsoup](https://github.com/jhy/jsoup)
++ [OkHttp](https://github.com/square/okhttp/)
 + [log4j](https://logging.apache.org/log4j/2.x/)
 + [prettytime](https://github.com/ocpsoft/prettytime)
 + [Gradle Shadow](https://github.com/johnrengelman/shadow)
