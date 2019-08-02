@@ -21,11 +21,11 @@
                 <fx:define>
                     <ToggleGroup fx:id="themes"/>
                 </fx:define>
-                <RadioMenuItem fx:id="mRadioMenuItemThemeClassic"
+                <RadioMenuItem fx:id="radioMenuItemThemeClassic"
                                onAction="#onClassicThemeSelected"
                                text="Classic"
                                toggleGroup="$themes"/>
-                <RadioMenuItem fx:id="mRadioMenuItemThemeDark"
+                <RadioMenuItem fx:id="radioMenuItemThemeDark"
                                onAction="#onDarkThemeSelected"
                                text="Dark"
                                toggleGroup="$themes"/>
@@ -75,7 +75,7 @@
                 <Insets left="5.0" right="5.0"/>
             </padding>
 
-            <Button fx:id="mButtonSubscriptions"
+            <Button fx:id="buttonSubscriptions"
                     text="Subscriptions"
                     prefHeight="28"
                     GridPane.columnIndex="0"
@@ -87,7 +87,7 @@
                 </tooltip>
             </Button>
 
-            <Button fx:id="mButtonRefresh"
+            <Button fx:id="buttonRefresh"
                     GridPane.columnIndex="1"
                     GridPane.rowIndex="0"
                     onAction="#onRefreshClicked">
@@ -101,7 +101,7 @@
                 </graphic>
             </Button>
 
-            <ListView fx:id="mListViewChannel"
+            <ListView fx:id="listViewChannel"
                       GridPane.columnIndex="0"
                       GridPane.rowIndex="1"
                       GridPane.columnSpan="2"
@@ -118,7 +118,7 @@
                 <Insets left="5.0" right="5.0"/>
             </padding>
 
-            <ScrollPane fx:id="mScrollPaneVideo"
+            <ScrollPane fx:id="scrollPaneVideo"
                         GridPane.rowIndex="0"
                         GridPane.columnIndex="0"
                         vbarPolicy="ALWAYS"
@@ -130,13 +130,13 @@
 
     </SplitPane>
 
-    <Label fx:id="mProgressMessage"
+    <Label fx:id="progressMessage"
            styleClass="progress-message"
            GridPane.columnIndex="0"
            GridPane.rowIndex="3"
            GridPane.hgrow="ALWAYS"/>
 
-    <ProgressBar fx:id="mProgressBar"
+    <ProgressBar fx:id="progressBar"
                  styleClass="progress-bar"
                  GridPane.columnIndex="1"
                  GridPane.rowIndex="3"

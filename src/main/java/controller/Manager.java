@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * Controller for Channel Manager.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 3.0
  * @since 1.0
  */
 public class Manager implements Initializable {
@@ -57,60 +57,60 @@ public class Manager implements Initializable {
     /**
      * Stage instance.
      */
-    private Stage mStage;
+    private Stage stage;
 
     /**
      * Button to import channels.
      */
     @FXML
-    private Button mButtonImportChannels;
+    private Button buttonImportChannels;
 
     /**
      * Button to add channel.
      */
     @FXML
-    private Button mButtonAddChannel;
+    private Button buttonAddChannel;
 
     /**
      * Button to delete selected channels.
      */
     @FXML
-    private Button mButtonDeleteSelection;
+    private Button buttonDeleteSelection;
 
     /**
      * CheckBox to select or deselect all the channels.
      */
     @FXML
-    private CheckBox mCheckBoxAll;
+    private CheckBox checkBoxAll;
 
     /**
      * ScrollPane displaying channel list.
      */
     @FXML
-    private ScrollPane mScrollPaneChannel;
+    private ScrollPane scrollPaneChannel;
 
     /**
      * Progress bar.
      */
     @FXML
-    private ProgressBar mProgressBarManager;
+    private ProgressBar progressBarManager;
 
     /**
      * Progress message.
      */
     @FXML
-    private Label mProgressMessageManager;
+    private Label progressMessageManager;
 
     /**
      * List of channels.
      */
-    private List<Channel> mChannelList;
+    private List<Channel> channelList;
 
     @Override
     public final void initialize(final URL location,
                                  final ResourceBundle resources) {
         try {
-            mChannelList = collectChannels();
+            channelList = collectChannels();
             showChannel(false);
         } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             ExceptionDialog.show(e);
@@ -139,8 +139,8 @@ public class Manager implements Initializable {
      * @param theme Theme
      */
     private void setCss(final String theme) {
-        mStage.getScene().getStylesheets().clear();
-        mStage.getScene().getStylesheets().add(getClass().getResource(
+        stage.getScene().getStylesheets().clear();
+        stage.getScene().getStylesheets().add(getClass().getResource(
                 Theme.getManagerCss(theme)).toExternalForm());
     }
 
@@ -148,11 +148,11 @@ public class Manager implements Initializable {
      * Set the buttons graphics.
      */
     private void setButtonGraphics() {
-        mButtonImportChannels.setGraphic(new ImageView(new Image(
+        buttonImportChannels.setGraphic(new ImageView(new Image(
                 getClass().getResourceAsStream(Icon.getIcon(Icon.DOWNLOAD)))));
-        mButtonAddChannel.setGraphic(new ImageView(new Image(
+        buttonAddChannel.setGraphic(new ImageView(new Image(
                 getClass().getResourceAsStream(Icon.getIcon(Icon.ADD)))));
-        mButtonDeleteSelection.setGraphic(new ImageView(new Image(
+        buttonDeleteSelection.setGraphic(new ImageView(new Image(
                 getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE)))));
     }
 
@@ -161,8 +161,8 @@ public class Manager implements Initializable {
      */
     @FXML
     public final void onSelectAll() {
-        for (Channel channel : mChannelList) {
-            channel.setChecked(mCheckBoxAll.isSelected());
+        for (Channel channel : channelList) {
+            channel.setChecked(checkBoxAll.isSelected());
         }
         try {
             showChannel(false);
@@ -180,26 +180,26 @@ public class Manager implements Initializable {
     public final void onImportClicked() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open OPML File");
-        File selectedFile = fileChooser.showOpenDialog(mStage);
+        File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile == null) {
             return;
         }
         OpmlReader opmlReader = new OpmlReader(selectedFile);
-        mProgressMessageManager.textProperty().bind(
+        progressMessageManager.textProperty().bind(
                 opmlReader.messageProperty());
-        mProgressBarManager.progressProperty().bind(
+        progressBarManager.progressProperty().bind(
                 opmlReader.progressProperty());
-        mProgressBarManager.setVisible(true);
+        progressBarManager.setVisible(true);
 
         new Thread(opmlReader).start();
         opmlReader.setOnSucceeded(t -> {
             try {
-                mProgressMessageManager.textProperty().unbind();
-                mProgressBarManager.progressProperty().unbind();
-                mProgressMessageManager.setText("");
-                mProgressBarManager.setProgress(0);
-                mProgressBarManager.setVisible(false);
+                progressMessageManager.textProperty().unbind();
+                progressBarManager.progressProperty().unbind();
+                progressMessageManager.setText("");
+                progressBarManager.setProgress(0);
+                progressBarManager.setVisible(false);
                 showChannel(true);
             } catch (ClassNotFoundException | SQLException
                     | ExceptionHandler e) {
@@ -211,11 +211,11 @@ public class Manager implements Initializable {
 
         opmlReader.setOnFailed(t -> {
             try {
-                mProgressMessageManager.textProperty().unbind();
-                mProgressBarManager.progressProperty().unbind();
-                mProgressMessageManager.setText("");
-                mProgressBarManager.setProgress(0);
-                mProgressBarManager.setVisible(false);
+                progressMessageManager.textProperty().unbind();
+                progressBarManager.progressProperty().unbind();
+                progressMessageManager.setText("");
+                progressBarManager.setProgress(0);
+                progressBarManager.setVisible(false);
                 throw opmlReader.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -247,7 +247,7 @@ public class Manager implements Initializable {
                 "Are you sure you want to delete the selected channels?",
                 new Task() {
                     @Override
-                    protected Object call() throws Exception {
+                    protected Object call() {
                         try {
                             Database.deleteChannels(getSelection());
                             showChannel(true);
@@ -304,7 +304,7 @@ public class Manager implements Initializable {
                 "Are you sure you want to delete the channel?",
                 new Task() {
                     @Override
-                    protected Object call() throws Exception {
+                    protected Object call() {
                         try {
                             Database.deleteChannel(channel.getId());
                             showChannel(true);
@@ -367,11 +367,11 @@ public class Manager implements Initializable {
     private void showChannel(final boolean refresh)
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         if (refresh) {
-            mChannelList = Database.getAllChannels();
-            mCheckBoxAll.setSelected(false);
+            channelList = Database.getAllChannels();
+            checkBoxAll.setSelected(false);
         }
-        mScrollPaneChannel.setContent(
-                new ChannelPane(this, mChannelList));
+        scrollPaneChannel.setContent(
+                new ChannelPane(this, channelList));
     }
 
     /**
@@ -380,7 +380,7 @@ public class Manager implements Initializable {
      * @return List of channel id
      */
     private List<Integer> getSelection() {
-        return mChannelList.stream().filter(Channel::isChecked)
+        return channelList.stream().filter(Channel::isChecked)
                 .map(Channel::getId).collect(Collectors.toList());
     }
 
@@ -413,7 +413,7 @@ public class Manager implements Initializable {
      * @param stage Stage to set
      */
     final void setStage(final Stage stage) {
-        mStage = stage;
+        this.stage = stage;
         initTheme();
     }
 }

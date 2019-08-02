@@ -4,7 +4,7 @@ package exception;
  * Enum class to enumerate the errors.
  *
  * @author Alkisum
- * @version 1.0
+ * @version 3.0
  * @since 1.0
  */
 public enum Error {
@@ -27,12 +27,12 @@ public enum Error {
     /**
      * Error constructor.
      *
-     * @param pCode    Exception code
-     * @param pMessage Exception message
+     * @param code    Exception code
+     * @param message Exception message
      */
-    Error(final int pCode, final String pMessage) {
-        code = pCode;
-        message = pMessage;
+    Error(final int code, final String message) {
+        this.code = code;
+        this.message = message;
     }
 
     /**

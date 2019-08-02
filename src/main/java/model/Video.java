@@ -52,52 +52,52 @@ public class Video {
     /**
      * Video id.
      */
-    private int mId;
+    private int id;
 
     /**
      * Video title.
      */
-    private final String mTitle;
+    private final String title;
 
     /**
      * Video published time.
      */
-    private long mTime;
+    private long time;
 
     /**
      * Thumbnail URL.
      */
-    private final String mThumbnailUrl;
+    private final String thumbnailUrl;
 
     /**
      * Thumbnail file (local).
      */
-    private File mThumbnail;
+    private File thumbnail;
 
     /**
      * Video has been watched.
      */
-    private boolean mWatched;
+    private boolean watched;
 
     /**
      * Channel's video id.
      */
-    private final int mChannelId;
+    private final int channelId;
 
     /**
      * Video duration in seconds.
      */
-    private long mDuration;
+    private long duration;
 
     /**
      * ID used by YT to identify the video.
      */
-    private String mYtId;
+    private String ytId;
 
     /**
      * OkHttpClient instance.
      */
-    private static OkHttpClient client = new OkHttpClient();
+    private static final OkHttpClient CLIENT = new OkHttpClient();
 
     /**
      * Video constructor.
@@ -112,12 +112,12 @@ public class Video {
     public Video(final String title, final long time,
                  final String thumbnailUrl, final int channelId,
                  final long duration, final String ytId) {
-        mTitle = title;
-        mTime = time;
-        mThumbnailUrl = thumbnailUrl;
-        mChannelId = channelId;
-        mDuration = duration;
-        mYtId = ytId;
+        this.title = title;
+        this.time = time;
+        this.thumbnailUrl = thumbnailUrl;
+        this.channelId = channelId;
+        this.duration = duration;
+        this.ytId = ytId;
     }
 
     /**
@@ -137,128 +137,128 @@ public class Video {
                  final String thumbnailUrl, final File thumbnail,
                  final boolean watched, final int channelId,
                  final long duration, final String ytId) {
-        mId = id;
-        mTitle = title;
-        mTime = time;
-        mThumbnailUrl = thumbnailUrl;
-        mThumbnail = thumbnail;
-        mWatched = watched;
-        mChannelId = channelId;
-        mDuration = duration;
-        mYtId = ytId;
+        this.id = id;
+        this.title = title;
+        this.time = time;
+        this.thumbnailUrl = thumbnailUrl;
+        this.thumbnail = thumbnail;
+        this.watched = watched;
+        this.channelId = channelId;
+        this.duration = duration;
+        this.ytId = ytId;
     }
 
     /**
      * @return Video id
      */
     public final int getId() {
-        return mId;
+        return id;
     }
 
     /**
      * @return Video title
      */
     public final String getTitle() {
-        return mTitle;
+        return title;
     }
 
     /**
      * @return Video URL
      */
     public final String getUrl() {
-        return getBaseUrl() + mYtId;
+        return getBaseUrl() + ytId;
     }
 
     /**
      * @return Video published time
      */
     public final long getTime() {
-        return mTime;
+        return time;
     }
 
     /**
      * @param time Video published time to set
      */
     public final void setTime(final long time) {
-        mTime = time;
+        this.time = time;
     }
 
     /**
      * @return Thumbnail URL
      */
     public final String getThumbnailUrl() {
-        return mThumbnailUrl;
+        return thumbnailUrl;
     }
 
     /**
      * @return Thumbnail file
      */
     public final File getThumbnail() {
-        return mThumbnail;
+        return thumbnail;
     }
 
     /**
      * @return Video has been watched.
      */
     public final boolean isWatched() {
-        return mWatched;
+        return watched;
     }
 
     /**
      * @param watched True if the video has been watched, false otherwise
      */
     public final void setWatched(final boolean watched) {
-        mWatched = watched;
+        this.watched = watched;
     }
 
     /**
      * @return Channel's video id
      */
     public final int getChannelId() {
-        return mChannelId;
+        return channelId;
     }
 
     /**
      * @return Video duration in seconds
      */
     public final long getDuration() {
-        return mDuration;
+        return duration;
     }
 
     /**
      * @param duration Video duration in seconds to set
      */
     public final void setDuration(final long duration) {
-        mDuration = duration;
+        this.duration = duration;
     }
 
     /**
      * @return YT id
      */
     public final String getYtId() {
-        return mYtId;
+        return ytId;
     }
 
     /**
      * @param ytId YT id to set
      */
     public final void setYtId(final String ytId) {
-        mYtId = ytId;
+        this.ytId = ytId;
     }
 
     /**
      * @return Formatted video duration
      */
     public final String getFormatDuration() {
-        if (mDuration >= 3600) {
+        if (duration >= 3600) {
             return String.format("%d:%02d:%02d",
-                    mDuration / 3600,
-                    (mDuration % 3600) / 60,
-                    (mDuration % 60));
+                    duration / 3600,
+                    (duration % 3600) / 60,
+                    (duration % 60));
         } else {
             return String.format("%d:%02d",
-                    (mDuration % 3600) / 60,
-                    (mDuration % 60));
+                    (duration % 3600) / 60,
+                    (duration % 60));
         }
     }
 
@@ -280,7 +280,7 @@ public class Video {
                         + Config.getValue(Config.PROP_API_KEY))
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = CLIENT.newCall(request).execute()) {
             // Get response body
             ResponseBody responseBody = response.body();
             if (responseBody == null) {

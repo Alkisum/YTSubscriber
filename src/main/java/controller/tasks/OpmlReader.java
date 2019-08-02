@@ -21,7 +21,7 @@ import java.util.List;
  * Task reading the OPML file to import a list of channels to subscribe.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 3.0
  * @since 1.0
  */
 public class OpmlReader extends Task<List<Channel>> {
@@ -29,7 +29,7 @@ public class OpmlReader extends Task<List<Channel>> {
     /**
      * File to read.
      */
-    private final File mFile;
+    private final File file;
 
     /**
      * OpmlReader constructor.
@@ -37,7 +37,7 @@ public class OpmlReader extends Task<List<Channel>> {
      * @param file File to read
      */
     public OpmlReader(final File file) {
-        mFile = file;
+        this.file = file;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class OpmlReader extends Task<List<Channel>> {
         DocumentBuilderFactory dbFactory =
                 DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(mFile);
+        Document doc = dBuilder.parse(file);
 
         doc.getDocumentElement().normalize();
 

@@ -22,13 +22,13 @@
             <Insets bottom="5.0" left="11.0" right="27.0" top="5.0"/>
         </padding>
 
-        <CheckBox fx:id="mCheckBoxAll"
+        <CheckBox fx:id="checkBoxAll"
                   GridPane.columnIndex="0"
                   GridPane.rowIndex="0"
                   GridPane.hgrow="ALWAYS"
                   onAction="#onSelectAll"/>
 
-        <Button fx:id="mButtonImportChannels"
+        <Button fx:id="buttonImportChannels"
                 GridPane.columnIndex="1"
                 GridPane.rowIndex="0"
                 onAction="#onImportClicked">
@@ -42,7 +42,7 @@
             </graphic>
         </Button>
 
-        <Button fx:id="mButtonAddChannel"
+        <Button fx:id="buttonAddChannel"
                 GridPane.columnIndex="2"
                 GridPane.rowIndex="0"
                 onAction="#onAddChannelClicked">
@@ -56,7 +56,7 @@
             </graphic>
         </Button>
 
-        <Button fx:id="mButtonDeleteSelection"
+        <Button fx:id="buttonDeleteSelection"
                 GridPane.columnIndex="3"
                 GridPane.rowIndex="0"
                 onAction="#onDeleteSelectionClicked">
@@ -72,7 +72,7 @@
 
     </GridPane>
 
-    <ScrollPane fx:id="mScrollPaneChannel"
+    <ScrollPane fx:id="scrollPaneChannel"
                 GridPane.columnIndex="0"
                 GridPane.rowIndex="1"
                 GridPane.columnSpan="2"
@@ -82,13 +82,13 @@
                 GridPane.vgrow="ALWAYS"
                 fitToWidth="true"/>
 
-    <Label fx:id="mProgressMessageManager"
+    <Label fx:id="progressMessageManager"
            styleClass="progress-message"
            GridPane.columnIndex="0"
            GridPane.rowIndex="2"
            GridPane.hgrow="ALWAYS"/>
 
-    <ProgressBar fx:id="mProgressBarManager"
+    <ProgressBar fx:id="progressBarManager"
                  styleClass="progress-bar"
                  GridPane.columnIndex="1"
                  GridPane.rowIndex="2"

@@ -8,7 +8,7 @@ import java.io.IOException;
  * Class handling themes.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 3.0
  * @since 2.0
  */
 public final class Theme {
@@ -113,10 +113,9 @@ public final class Theme {
      */
     public static String getUpdaterCss(final String theme) {
         switch (theme) {
-            case CLASSIC:
-                return CLASSIC_UPDATER_CSS;
             case DARK:
                 return DARK_UPDATER_CSS;
+            case CLASSIC:
             default:
                 return CLASSIC_UPDATER_CSS;
         }
@@ -128,10 +127,9 @@ public final class Theme {
      */
     public static String getManagerCss(final String theme) {
         switch (theme) {
-            case CLASSIC:
-                return CLASSIC_MANAGER_CSS;
             case DARK:
                 return DARK_MANAGER_CSS;
+            case CLASSIC:
             default:
                 return CLASSIC_MANAGER_CSS;
         }
@@ -143,10 +141,9 @@ public final class Theme {
      */
     public static String getAboutCss(final String theme) {
         switch (theme) {
-            case CLASSIC:
-                return CLASSIC_ABOUT_CSS;
             case DARK:
                 return DARK_ABOUT_CSS;
+            case CLASSIC:
             default:
                 return CLASSIC_ABOUT_CSS;
         }
@@ -158,10 +155,9 @@ public final class Theme {
      */
     public static String getProgressCss(final String theme) {
         switch (theme) {
-            case CLASSIC:
-                return CLASSIC_PROGRESS_CSS;
             case DARK:
                 return DARK_PROGRESS_CSS;
+            case CLASSIC:
             default:
                 return CLASSIC_PROGRESS_CSS;
         }

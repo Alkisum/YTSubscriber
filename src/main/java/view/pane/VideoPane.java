@@ -67,22 +67,22 @@ public class VideoPane extends GridPane {
     /**
      * List of videos shown.
      */
-    private final List<Video> mVideos;
+    private final List<Video> videos;
 
     /**
      * Update instance.
      */
-    private final Updater mUpdater;
+    private final Updater updater;
 
     /**
      * Progress message.
      */
-    private final Label mProgressMessage;
+    private final Label progressMessage;
 
     /**
      * Progress bar.
      */
-    private final ProgressBar mProgressBar;
+    private final ProgressBar progressBar;
 
     /**
      * Video pane constructor.
@@ -95,10 +95,10 @@ public class VideoPane extends GridPane {
     public VideoPane(final List<Video> videos, final Updater updater,
                      final Label progressMessage,
                      final ProgressBar progressBar) {
-        mVideos = new ArrayList<>(videos);
-        mUpdater = updater;
-        mProgressMessage = progressMessage;
-        mProgressBar = progressBar;
+        this.videos = new ArrayList<>(videos);
+        this.updater = updater;
+        this.progressMessage = progressMessage;
+        this.progressBar = progressBar;
         setGUI();
     }
 
@@ -115,11 +115,11 @@ public class VideoPane extends GridPane {
             @Override
             protected Void call() throws Exception {
                 int row = 0;
-                for (int i = 0; i < mVideos.size(); i++) {
-                    updateProgress(i + 1, mVideos.size());
-                    updateMessage("Getting " + mVideos.get(i).getTitle()
+                for (int i = 0; i < videos.size(); i++) {
+                    updateProgress(i + 1, videos.size());
+                    updateMessage("Getting " + videos.get(i).getTitle()
                             + "...");
-                    addVideo(mVideos.get(i), row);
+                    addVideo(videos.get(i), row);
                     row += ROW_COUNT;
                     if (i > 100) {
                         // Do not list more than a 100 videos
@@ -130,27 +130,27 @@ public class VideoPane extends GridPane {
             }
         };
 
-        mProgressMessage.textProperty().bind(task.messageProperty());
-        mProgressBar.progressProperty().bind(task.progressProperty());
-        mProgressBar.setVisible(true);
+        progressMessage.textProperty().bind(task.messageProperty());
+        progressBar.progressProperty().bind(task.progressProperty());
+        progressBar.setVisible(true);
 
         new Thread(task).start();
 
         task.setOnSucceeded(t -> {
-            mProgressMessage.textProperty().unbind();
-            mProgressBar.progressProperty().unbind();
-            mProgressMessage.setText("");
-            mProgressBar.setProgress(0);
-            mProgressBar.setVisible(false);
+            progressMessage.textProperty().unbind();
+            progressBar.progressProperty().unbind();
+            progressMessage.setText("");
+            progressBar.setProgress(0);
+            progressBar.setVisible(false);
         });
 
         task.setOnFailed(t -> {
             try {
-                mProgressMessage.textProperty().unbind();
-                mProgressBar.progressProperty().unbind();
-                mProgressMessage.setText("");
-                mProgressBar.setProgress(0);
-                mProgressBar.setVisible(false);
+                progressMessage.textProperty().unbind();
+                progressBar.progressProperty().unbind();
+                progressMessage.setText("");
+                progressBar.setProgress(0);
+                progressBar.setVisible(false);
                 throw task.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -217,7 +217,7 @@ public class VideoPane extends GridPane {
         setVgrow(channelName, Priority.ALWAYS);
         channelName.setStyle("-fx-cursor: hand;");
         channelName.setOnMouseClicked(
-                event -> mUpdater.selectChannel(video.getChannelId()));
+                event -> updater.selectChannel(video.getChannelId()));
 
         // Date
         Label date = new Label(new PrettyTime().format(
@@ -243,7 +243,7 @@ public class VideoPane extends GridPane {
         Tooltip.install(youtube, new Tooltip("Watch video on YouTube"));
         youtube.setStyle("-fx-cursor: hand;");
         youtube.setOnMouseClicked(
-                event -> mUpdater.getApplication().getHostServices()
+                event -> updater.getApplication().getHostServices()
                         .showDocument(video.getUrl()));
 
         // Watch
@@ -364,7 +364,7 @@ public class VideoPane extends GridPane {
                     Icon.getIcon(Icon.WATCHED))));
         }
         video.setWatched(!video.isWatched());
-        mUpdater.refreshChannelList();
+        updater.refreshChannelList();
     }
 
     /**
@@ -379,7 +379,7 @@ public class VideoPane extends GridPane {
             protected Object call() {
                 try {
                     Database.deleteVideo(video);
-                    mUpdater.refreshVideoList();
+                    updater.refreshVideoList();
                 } catch (ClassNotFoundException | SQLException
                         | ExceptionHandler e) {
                     ExceptionDialog.show(e);

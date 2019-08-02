@@ -21,7 +21,7 @@ import java.util.List;
  * Pane extending GridPane and containing Channel attributes.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 3.0
  * @since 1.0
  */
 public class ChannelPane extends GridPane {
@@ -29,12 +29,12 @@ public class ChannelPane extends GridPane {
     /**
      * Manager instance.
      */
-    private final Manager mManager;
+    private final Manager manager;
 
     /**
      * List of channels.
      */
-    private final List<Channel> mChannels;
+    private final List<Channel> channels;
 
     /**
      * ChannelPane constructor.
@@ -44,8 +44,8 @@ public class ChannelPane extends GridPane {
      */
     public ChannelPane(final Manager manager,
                        final List<Channel> channels) {
-        mManager = manager;
-        mChannels = new ArrayList<>(channels);
+        this.manager = manager;
+        this.channels = new ArrayList<>(channels);
         setGUI();
     }
 
@@ -58,9 +58,9 @@ public class ChannelPane extends GridPane {
         setVgap(5);
         setPadding(new Insets(5, 10, 5, 10));
 
-        for (int row = 0; row < mChannels.size(); row++) {
+        for (int row = 0; row < channels.size(); row++) {
 
-            Channel channel = mChannels.get(row);
+            Channel channel = channels.get(row);
 
             // CheckBox
             CheckBox checkBox = new CheckBox();
@@ -93,7 +93,7 @@ public class ChannelPane extends GridPane {
                     subPath));
             buttonSubscribed.setGraphic(new ImageView(imageSubscribed));
             buttonSubscribed.setOnAction(
-                    (event) -> mManager.onSetChannelSubscriptionClicked(
+                    (event) -> manager.onSetChannelSubscriptionClicked(
                             channel));
             add(buttonSubscribed, 3, row);
 
@@ -104,7 +104,7 @@ public class ChannelPane extends GridPane {
                     Icon.getIcon(Icon.EDIT)));
             buttonEdit.setGraphic(new ImageView(imageEdit));
             buttonEdit.setOnAction(
-                    (event) -> mManager.onEditChannelClicked(event, channel));
+                    (event) -> manager.onEditChannelClicked(event, channel));
             add(buttonEdit, 4, row);
 
             // Delete button
@@ -114,7 +114,7 @@ public class ChannelPane extends GridPane {
                     Icon.getIcon(Icon.DELETE)));
             buttonDelete.setGraphic(new ImageView(imageDelete));
             buttonDelete.setOnAction(
-                    (event) -> mManager.onDeleteChannelClicked(channel));
+                    (event) -> manager.onDeleteChannelClicked(channel));
             add(buttonDelete, 5, row);
         }
         ColumnConstraints checkBoxConstraint = new ColumnConstraints();

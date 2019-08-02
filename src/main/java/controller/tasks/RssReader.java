@@ -38,12 +38,12 @@ public class RssReader extends Task<Void> {
     /**
      * List of channels to read.
      */
-    private final List<Channel> mChannels;
+    private final List<Channel> channels;
 
     /**
      * List of not found channels.
      */
-    private final List<Channel> mNotFoundChannels = new ArrayList<>();
+    private final List<Channel> notFoundChannels = new ArrayList<>();
 
     /**
      * RssReader constructor.
@@ -51,7 +51,7 @@ public class RssReader extends Task<Void> {
      * @param channels List of channels
      */
     public RssReader(final List<Channel> channels) {
-        mChannels = channels;
+        this.channels = channels;
     }
 
     @Override
@@ -62,9 +62,9 @@ public class RssReader extends Task<Void> {
 
         updateMessage("Initializing...");
 
-        for (int c = 0; c < mChannels.size(); c++) {
+        for (int c = 0; c < channels.size(); c++) {
 
-            Channel channel = mChannels.get(c);
+            Channel channel = channels.get(c);
 
             // Create a YT ID list to check whether there are videos in the
             // database that have been watched and not in the feed anymore
@@ -78,7 +78,7 @@ public class RssReader extends Task<Void> {
             try {
                 doc = dBuilder.parse(channel.getUrl());
             } catch (IOException e) {
-                mNotFoundChannels.add(channel);
+                notFoundChannels.add(channel);
                 // Jump to next channel
                 continue;
             }
@@ -88,7 +88,7 @@ public class RssReader extends Task<Void> {
 
             NodeList nodeList = doc.getElementsByTagName("entry");
 
-            updateProgress(c + 1, mChannels.size());
+            updateProgress(c + 1, channels.size());
             updateMessage("Reading " + channel.getName() + " feed...");
 
             for (int i = 0; i < nodeList.getLength(); i++) {
@@ -184,6 +184,6 @@ public class RssReader extends Task<Void> {
      * @return Channels not found while reading the feeds
      */
     public final List<Channel> getNotFoundChannels() {
-        return mNotFoundChannels;
+        return notFoundChannels;
     }
 }

@@ -33,7 +33,7 @@ final class DatabaseUpdater {
     /**
      * Task that updates video duration in database.
      */
-    private static final Task<Void> UPDATE_VIDEO_DURATION = new Task<Void>() {
+    private static final Task<Void> UPDATE_VIDEO_DURATION = new Task<>() {
         @Override
         protected Void call() throws Exception {
             List<Video> videos = Database.getAllVideos();
@@ -63,7 +63,7 @@ final class DatabaseUpdater {
     /**
      * Task that updates channel URL in database.
      */
-    private static final Task<Void> UPDATE_CHANNEL_URL = new Task<Void>() {
+    private static final Task<Void> UPDATE_CHANNEL_URL = new Task<>() {
         @Override
         protected Void call() throws Exception {
             List<Channel> channels = Database.getAllChannels();
@@ -91,7 +91,7 @@ final class DatabaseUpdater {
     /**
      * Task that updates video URL in database.
      */
-    private static final Task<Void> UPDATE_VIDEO_URL = new Task<Void>() {
+    private static final Task<Void> UPDATE_VIDEO_URL = new Task<>() {
         @Override
         protected Void call() throws Exception {
             List<Video> videos = Database.getAllVideos();
@@ -119,7 +119,7 @@ final class DatabaseUpdater {
     /**
      * Task that updates video time in database.
      */
-    private static final Task<Void> UPDATE_VIDEO_TIME = new Task<Void>() {
+    private static final Task<Void> UPDATE_VIDEO_TIME = new Task<>() {
         @Override
         protected Void call() throws Exception {
             List<Video> videos = Database.getAllVideos();
@@ -147,7 +147,7 @@ final class DatabaseUpdater {
     /**
      * Task that refreshes the tables (remove unused columns).
      */
-    private static final Task<Void> REFRESH_TABLES = new Task<Void>() {
+    private static final Task<Void> REFRESH_TABLES = new Task<>() {
         @Override
         protected Void call() throws Exception {
             Video.refresh();

@@ -51,7 +51,7 @@ import java.util.ResourceBundle;
  * Controller for Subscription Updater.
  *
  * @author Alkisum
- * @version 2.7
+ * @version 3.0
  * @since 1.0
  */
 public class Updater implements Initializable {
@@ -74,96 +74,96 @@ public class Updater implements Initializable {
     /**
      * Application instance.
      */
-    private Application mApplication;
+    private Application application;
 
     /**
      * Scene instance.
      */
-    private Scene mScene;
+    private Scene scene;
 
     /**
      * List of videos shown in Video's scroll pane.
      */
-    private List<Video> mVideosShown;
+    private List<Video> videosShown;
 
     /**
      * Identifier to refresh the videos after calling
      * {@link Updater#onRefreshClicked()}. The identifier is either a channel id
      * or -1 for unwatched videos.
      */
-    private int mPostRefreshId;
+    private int postRefreshId;
 
     /**
      * Tasks to update the database.
      */
-    private Queue<Task<?>> mUpdateTasks;
+    private Queue<Task<?>> updateTasks;
 
     /**
      * Current task to update the database.
      */
-    private Task<?> mCurrentUpdateTask;
+    private Task<?> currentUpdateTask;
 
     /**
      * RadioMenuItem for classic theme.
      */
     @FXML
-    private RadioMenuItem mRadioMenuItemThemeClassic;
+    private RadioMenuItem radioMenuItemThemeClassic;
 
     /**
      * RadioMenuItem for dark theme.
      */
     @FXML
-    private RadioMenuItem mRadioMenuItemThemeDark;
+    private RadioMenuItem radioMenuItemThemeDark;
 
     /**
      * Scroll pane containing the videos.
      */
     @FXML
-    private ScrollPane mScrollPaneVideo;
+    private ScrollPane scrollPaneVideo;
 
     /**
      * Progress message.
      */
     @FXML
-    private Label mProgressMessage;
+    private Label progressMessage;
 
     /**
      * Progress bar.
      */
     @FXML
-    private ProgressBar mProgressBar;
+    private ProgressBar progressBar;
 
     /**
      * ListView containing the channel names.
      */
     @FXML
-    private ListView<Channel> mListViewChannel;
+    private ListView<Channel> listViewChannel;
 
     /**
      * Button to show all the unwatched videos.
      */
     @FXML
-    private Button mButtonSubscriptions;
+    private Button buttonSubscriptions;
 
     /**
      * Button to check for new videos available.
      */
     @FXML
-    private Button mButtonRefresh;
+    private Button buttonRefresh;
 
     @Override
     public final void initialize(final URL location,
                                  final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
-            mUpdateTasks = Database.init();
+            updateTasks = Database.init();
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
         }
 
-        if (mUpdateTasks == null) {
+        if (updateTasks == null) {
             setGui();
         }
     }
@@ -175,16 +175,16 @@ public class Updater implements Initializable {
         // Initialize channel list
         refreshChannelList();
         // Initialize video list
-        mPostRefreshId = UNWATCHED_VIDEOS_ID;
+        postRefreshId = UNWATCHED_VIDEOS_ID;
         refreshVideoList();
 
-        mButtonSubscriptions.setText(
-                "Subscriptions (" + mVideosShown.size() + ")");
+        buttonSubscriptions.setText(
+                "Subscriptions (" + videosShown.size() + ")");
 
-        mListViewChannel.getSelectionModel().selectedItemProperty().addListener(
+        listViewChannel.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
                     if (newValue != null) {
-                        mPostRefreshId = newValue.getId();
+                        postRefreshId = newValue.getId();
                         refreshVideoList();
                     }
                 });
@@ -194,13 +194,13 @@ public class Updater implements Initializable {
      * Update the database if necessary.
      */
     public final void updateDatabase() {
-        if (mUpdateTasks == null) {
+        if (updateTasks == null) {
             return;
         }
-        mCurrentUpdateTask = mUpdateTasks.poll();
+        currentUpdateTask = updateTasks.poll();
 
         // All update tasks succeeded
-        if (mCurrentUpdateTask == null) {
+        if (currentUpdateTask == null) {
             setGui();
             try {
                 Config.setValue(Config.PROP_SCHEMA_VERSION,
@@ -217,29 +217,29 @@ public class Updater implements Initializable {
         try {
             ProgressDialog progressDialog = new ProgressDialog();
 
-            mCurrentUpdateTask.setOnSucceeded(t -> {
+            currentUpdateTask.setOnSucceeded(t -> {
                 progressDialog.dismiss();
                 updateDatabase();
             });
 
-            mCurrentUpdateTask.setOnFailed(t -> {
+            currentUpdateTask.setOnFailed(t -> {
                 progressDialog.dismiss();
                 try {
-                    throw mCurrentUpdateTask.getException();
+                    throw currentUpdateTask.getException();
                 } catch (Throwable throwable) {
                     ExceptionDialog.show(throwable);
                     LOGGER.error(throwable);
                     throwable.printStackTrace();
                 }
             });
-            Window window = mScene.getWindow();
+            Window window = scene.getWindow();
 
-            double x = window.getX() + window.getWidth() / 2
-                    - ProgressDialog.WIDTH / 2;
-            double y = window.getY() + window.getHeight() / 2
-                    - ProgressDialog.HEIGHT / 2;
-            progressDialog.show(mCurrentUpdateTask, x, y);
-            new Thread(mCurrentUpdateTask).start();
+            double x = window.getX() + window.getWidth() / 2.0
+                    - ProgressDialog.WIDTH / 2.0;
+            double y = window.getY() + window.getHeight() / 2.0
+                    - ProgressDialog.HEIGHT / 2.0;
+            progressDialog.show(currentUpdateTask, x, y);
+            new Thread(currentUpdateTask).start();
         } catch (IOException e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
@@ -250,20 +250,20 @@ public class Updater implements Initializable {
     /**
      * Read and set the theme set in the config file.
      *
-     * @param scene Scene
+     * @param pScene Scene
      */
-    public final void initTheme(final Scene scene) {
-        mScene = scene;
+    public final void initTheme(final Scene pScene) {
+        this.scene = pScene;
         try {
             String theme = Theme.getTheme();
             setCss(theme);
             // Set the RadioMenuItem
             switch (theme) {
                 case Theme.CLASSIC:
-                    mRadioMenuItemThemeClassic.setSelected(true);
+                    radioMenuItemThemeClassic.setSelected(true);
                     break;
                 case Theme.DARK:
-                    mRadioMenuItemThemeDark.setSelected(true);
+                    radioMenuItemThemeDark.setSelected(true);
                     break;
                 default:
                     break;
@@ -283,8 +283,8 @@ public class Updater implements Initializable {
      * @param theme Theme
      */
     private void setCss(final String theme) {
-        mScene.getStylesheets().clear();
-        mScene.getStylesheets().add(getClass().getResource(
+        scene.getStylesheets().clear();
+        scene.getStylesheets().add(getClass().getResource(
                 Theme.getUpdaterCss(theme)).toExternalForm());
     }
 
@@ -292,7 +292,7 @@ public class Updater implements Initializable {
      * Set the buttons graphics.
      */
     private void setButtonGraphics() {
-        mButtonRefresh.setGraphic(new ImageView(new Image(
+        buttonRefresh.setGraphic(new ImageView(new Image(
                 getClass().getResourceAsStream(Icon.getIcon(Icon.REFRESH)))));
     }
 
@@ -301,9 +301,9 @@ public class Updater implements Initializable {
      */
     @FXML
     public final void onSubscriptionsClicked() {
-        mPostRefreshId = UNWATCHED_VIDEOS_ID;
+        postRefreshId = UNWATCHED_VIDEOS_ID;
         refreshVideoList();
-        mListViewChannel.getSelectionModel().clearSelection();
+        listViewChannel.getSelectionModel().clearSelection();
     }
 
     /**
@@ -359,21 +359,21 @@ public class Updater implements Initializable {
             return;
         }
 
-        mButtonRefresh.setDisable(true);
+        buttonRefresh.setDisable(true);
 
-        mProgressMessage.textProperty().bind(rssReader.messageProperty());
-        mProgressBar.progressProperty().bind(rssReader.progressProperty());
-        mProgressBar.setVisible(true);
+        progressMessage.textProperty().bind(rssReader.messageProperty());
+        progressBar.progressProperty().bind(rssReader.progressProperty());
+        progressBar.setVisible(true);
 
         new Thread(rssReader).start();
 
         final RssReader finalRssReaderOnSuccess = rssReader;
         rssReader.setOnSucceeded(t -> {
-            mProgressMessage.textProperty().unbind();
-            mProgressBar.progressProperty().unbind();
-            mProgressMessage.setText("");
-            mProgressBar.setProgress(0);
-            mProgressBar.setVisible(false);
+            progressMessage.textProperty().unbind();
+            progressBar.progressProperty().unbind();
+            progressMessage.setText("");
+            progressBar.setProgress(0);
+            progressBar.setVisible(false);
 
             refreshChannelList();
             refreshVideoList();
@@ -388,17 +388,17 @@ public class Updater implements Initializable {
                 ErrorDialog.show("Not found channels", message.toString());
             }
 
-            mButtonRefresh.setDisable(false);
+            buttonRefresh.setDisable(false);
         });
 
         final RssReader finalRssReaderOnFailed = rssReader;
         rssReader.setOnFailed(t -> {
             try {
-                mProgressMessage.textProperty().unbind();
-                mProgressBar.progressProperty().unbind();
-                mProgressMessage.setText("");
-                mProgressBar.setProgress(0);
-                mProgressBar.setVisible(false);
+                progressMessage.textProperty().unbind();
+                progressBar.progressProperty().unbind();
+                progressMessage.setText("");
+                progressBar.setProgress(0);
+                progressBar.setVisible(false);
                 throw finalRssReaderOnFailed.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -406,7 +406,7 @@ public class Updater implements Initializable {
                 throwable.printStackTrace();
             }
 
-            mButtonRefresh.setDisable(false);
+            buttonRefresh.setDisable(false);
         });
     }
 
@@ -420,7 +420,7 @@ public class Updater implements Initializable {
                 "Are you sure you want to set all the videos to watched?",
                 new Task() {
                     @Override
-                    protected Void call() throws Exception {
+                    protected Void call() {
                         try {
                             Database.updateVideoWatchState(true);
                             refreshChannelList();
@@ -447,7 +447,7 @@ public class Updater implements Initializable {
                 "Are you sure you want to set all the videos to unwatched?",
                 new Task() {
                     @Override
-                    protected Void call() throws Exception {
+                    protected Void call() {
                         try {
                             Database.updateVideoWatchState(false);
                             refreshChannelList();
@@ -474,7 +474,7 @@ public class Updater implements Initializable {
                 "Are you sure you want to delete all the videos?",
                 new Task() {
                     @Override
-                    protected Void call() throws Exception {
+                    protected Void call() {
                         deleteAllVideos();
                         return null;
                     }
@@ -499,18 +499,18 @@ public class Updater implements Initializable {
             return;
         }
 
-        mProgressMessage.textProperty().bind(videoDeleter.messageProperty());
-        mProgressBar.progressProperty().bind(videoDeleter.progressProperty());
-        mProgressBar.setVisible(true);
+        progressMessage.textProperty().bind(videoDeleter.messageProperty());
+        progressBar.progressProperty().bind(videoDeleter.progressProperty());
+        progressBar.setVisible(true);
 
         new Thread(videoDeleter).start();
 
         videoDeleter.setOnSucceeded(t -> {
-            mProgressMessage.textProperty().unbind();
-            mProgressBar.progressProperty().unbind();
-            mProgressMessage.setText("");
-            mProgressBar.setProgress(0);
-            mProgressBar.setVisible(false);
+            progressMessage.textProperty().unbind();
+            progressBar.progressProperty().unbind();
+            progressMessage.setText("");
+            progressBar.setProgress(0);
+            progressBar.setVisible(false);
             refreshChannelList();
             refreshVideoList();
         });
@@ -518,11 +518,11 @@ public class Updater implements Initializable {
         final VideoDeleter finalVideoDeleterOnFailed = videoDeleter;
         videoDeleter.setOnFailed(t -> {
             try {
-                mProgressMessage.textProperty().unbind();
-                mProgressBar.progressProperty().unbind();
-                mProgressMessage.setText("");
-                mProgressBar.setProgress(0);
-                mProgressBar.setVisible(false);
+                progressMessage.textProperty().unbind();
+                progressBar.progressProperty().unbind();
+                progressMessage.setText("");
+                progressBar.setProgress(0);
+                progressBar.setVisible(false);
                 throw finalVideoDeleterOnFailed.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -539,8 +539,8 @@ public class Updater implements Initializable {
         try {
             ObservableList<Channel> items = FXCollections.observableArrayList();
             items.addAll(Database.getAllChannels());
-            mListViewChannel.setItems(items);
-            mButtonSubscriptions.setText("Subscriptions ("
+            listViewChannel.setItems(items);
+            buttonSubscriptions.setText("Subscriptions ("
                     + Database.countUnwatchedVideos() + ")");
         } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             ExceptionDialog.show(e);
@@ -554,13 +554,13 @@ public class Updater implements Initializable {
      */
     public final void refreshVideoList() {
         try {
-            if (mPostRefreshId == UNWATCHED_VIDEOS_ID) {
-                mVideosShown = Database.getUnwatchedVideos();
+            if (postRefreshId == UNWATCHED_VIDEOS_ID) {
+                videosShown = Database.getUnwatchedVideos();
             } else {
-                mVideosShown = Database.getAllVideosByChannel(mPostRefreshId);
+                videosShown = Database.getAllVideosByChannel(postRefreshId);
             }
-            mScrollPaneVideo.setContent(new VideoPane(mVideosShown, this,
-                    mProgressMessage, mProgressBar));
+            scrollPaneVideo.setContent(new VideoPane(videosShown, this,
+                    progressMessage, progressBar));
         } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
@@ -575,8 +575,8 @@ public class Updater implements Initializable {
      */
     public final void selectChannel(final int channelId) {
         int index = getIndexFromListView(channelId);
-        mListViewChannel.scrollTo(index);
-        mListViewChannel.getSelectionModel().select(index);
+        listViewChannel.scrollTo(index);
+        listViewChannel.getSelectionModel().select(index);
     }
 
     /**
@@ -586,7 +586,7 @@ public class Updater implements Initializable {
      * @return Index of the channel in the list view
      */
     private int getIndexFromListView(final int channelId) {
-        List<Channel> channels = mListViewChannel.getItems();
+        List<Channel> channels = listViewChannel.getItems();
         for (int i = 0; i < channels.size(); i++) {
             if (channelId == channels.get(i).getId()) {
                 return i;
@@ -599,14 +599,14 @@ public class Updater implements Initializable {
      * @return Application instance
      */
     public final Application getApplication() {
-        return mApplication;
+        return application;
     }
 
     /**
      * @param application Application instance to set
      */
     public final void setApplication(final Application application) {
-        mApplication = application;
+        this.application = application;
     }
 
     /**

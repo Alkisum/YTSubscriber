@@ -16,7 +16,7 @@ import java.util.List;
  * Class defining channel.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 3.0
  * @since 1.0
  */
 public class Channel {
@@ -35,27 +35,27 @@ public class Channel {
     /**
      * Channel id.
      */
-    private final int mId;
+    private final int id;
 
     /**
      * Channel name.
      */
-    private final String mName;
+    private final String name;
 
     /**
      * Channel subscribed flag.
      */
-    private final boolean mSubscribed;
+    private final boolean subscribed;
 
     /**
      * The channel is selected ini the manager list.
      */
-    private boolean mChecked;
+    private boolean checked;
 
     /**
      * YT id.
      */
-    private String mYtId;
+    private String ytId;
 
     /**
      * Channel constructor.
@@ -67,18 +67,18 @@ public class Channel {
      */
     public Channel(final int id, final String name, final boolean subscribed,
                    final String ytId) {
-        mId = id;
-        mName = name;
-        mSubscribed = subscribed;
-        mChecked = false;
-        mYtId = ytId;
+        this.id = id;
+        this.name = name;
+        this.subscribed = subscribed;
+        checked = false;
+        this.ytId = ytId;
     }
 
     @Override
     public final String toString() {
         try {
-            return mName
-                    + " (" + Database.countUnwatchedVideosByChannel(mId) + ")";
+            return name
+                    + " (" + Database.countUnwatchedVideosByChannel(id) + ")";
         } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
             LOGGER.error(e);
             e.printStackTrace();
@@ -97,7 +97,7 @@ public class Channel {
      */
     public final void clean(final List<String> ytIdList)
             throws SQLException, ClassNotFoundException, ExceptionHandler {
-        List<Video> videoList = Database.getAllVideosByChannel(mId);
+        List<Video> videoList = Database.getAllVideosByChannel(id);
         for (Video video : videoList) {
             if (!ytIdList.contains(video.getYtId()) && video.isWatched()) {
                 Database.deleteVideo(video);
@@ -109,56 +109,56 @@ public class Channel {
      * @return Channel id
      */
     public final int getId() {
-        return mId;
+        return id;
     }
 
     /**
      * @return Channel name
      */
     public final String getName() {
-        return mName;
+        return name;
     }
 
     /**
      * @return Channel URL
      */
     public final String getUrl() {
-        return getBaseUrl() + mYtId;
+        return getBaseUrl() + ytId;
     }
 
     /**
      * @return Channel subscribed flag
      */
     public final boolean isSubscribed() {
-        return mSubscribed;
+        return subscribed;
     }
 
     /**
      * @return Channel is selected in manager list
      */
     public final boolean isChecked() {
-        return mChecked;
+        return checked;
     }
 
     /**
      * @param checked Select the channel in manager list
      */
     public final void setChecked(final boolean checked) {
-        mChecked = checked;
+        this.checked = checked;
     }
 
     /**
      * @return YT id
      */
     public final String getYtId() {
-        return mYtId;
+        return ytId;
     }
 
     /**
      * @param ytId YT id to set
      */
     public final void setYtId(final String ytId) {
-        mYtId = ytId;
+        this.ytId = ytId;
     }
 
     /**

@@ -18,7 +18,7 @@ import java.io.IOException;
  * Dialog to show task progress.
  *
  * @author Alkisum
- * @version 2.2
+ * @version 3.0
  * @since 2.2
  */
 public class ProgressDialog {
@@ -31,12 +31,12 @@ public class ProgressDialog {
     /**
      * Progress bar.
      */
-    private final ProgressBar mBar;
+    private final ProgressBar bar;
 
     /**
      * Progress message.
      */
-    private final Label mMessage;
+    private final Label message;
 
     /**
      * ProgressDialog's width.
@@ -60,16 +60,16 @@ public class ProgressDialog {
         dialogStage.initModality(Modality.APPLICATION_MODAL);
         dialogStage.setTitle("Update");
 
-        mBar = new ProgressBar();
-        mBar.setPrefWidth(WIDTH);
-        mBar.setProgress(-1);
-        mMessage = new Label("");
+        bar = new ProgressBar();
+        bar.setPrefWidth(WIDTH);
+        bar.setProgress(-1);
+        message = new Label("");
 
         final VBox hb = new VBox();
         hb.setPadding(new Insets(5, 5, 5, 5));
         hb.setSpacing(5);
         hb.setAlignment(Pos.CENTER_LEFT);
-        hb.getChildren().addAll(mMessage, mBar);
+        hb.getChildren().addAll(message, bar);
 
         Scene scene = new Scene(hb);
         scene.getStylesheets().add(ProgressDialog.class.getResource(
@@ -85,8 +85,8 @@ public class ProgressDialog {
      * @param y    ProgressDialog's Y position
      */
     public final void show(final Task<?> task, final double x, final double y) {
-        mBar.progressProperty().bind(task.progressProperty());
-        mMessage.textProperty().bind(task.messageProperty());
+        bar.progressProperty().bind(task.progressProperty());
+        message.textProperty().bind(task.messageProperty());
         dialogStage.getScene().getWindow().setX(x);
         dialogStage.getScene().getWindow().setY(y);
         dialogStage.show();
@@ -96,8 +96,8 @@ public class ProgressDialog {
      * Dismiss the ProgressDialog.
      */
     public final void dismiss() {
-        mBar.progressProperty().unbind();
-        mMessage.textProperty().unbind();
+        bar.progressProperty().unbind();
+        message.textProperty().unbind();
         dialogStage.close();
     }
 }
