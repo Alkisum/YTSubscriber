@@ -47,6 +47,7 @@ mediaPlayer=
 + [prettytime](https://github.com/ocpsoft/prettytime)
 + [Gradle Shadow](https://github.com/johnrengelman/shadow)
 + [SQLite JDBC Driver](https://github.com/xerial/sqlite-jdbc)
++ [ObjectBox](https://github.com/objectbox/objectbox-java)
 
 
 ## License

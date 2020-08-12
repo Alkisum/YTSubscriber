@@ -11,7 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
-import javafx.util.Pair;
+import model.Channel;
 
 import java.util.Optional;
 
@@ -19,7 +19,7 @@ import java.util.Optional;
  * Dialog to add a channel.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 4.0
  * @since 1.0
  */
 public final class AddChannelDialog {
@@ -38,10 +38,9 @@ public final class AddChannelDialog {
      * @param btn     Button that triggered the dialog
      */
     public static void show(final Manager manager, final Button btn) {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        Dialog<Channel> dialog = new Dialog<>();
         dialog.setTitle("Add Channel");
-        dialog.getDialogPane().getButtonTypes().addAll(
-                ButtonType.OK, ButtonType.CANCEL);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -50,8 +49,7 @@ public final class AddChannelDialog {
 
         TextField name = new TextField();
         TextField urlId = new TextField();
-        urlId.setTooltip(new Tooltip("Identifier following "
-                + "\"https://www.youtube.com/channel/\""));
+        urlId.setTooltip(new Tooltip("Identifier following \"https://www.youtube.com/channel/\""));
 
         grid.add(new Label("Name:"), 0, 0);
         grid.add(name, 1, 0);
@@ -62,11 +60,9 @@ public final class AddChannelDialog {
         applyButton.setDisable(true);
 
         name.textProperty().addListener((observable, oldValue, newValue) ->
-                applyButton.setDisable(newValue.trim().isEmpty()
-                        || urlId.getText().isEmpty()));
+                applyButton.setDisable(newValue.trim().isEmpty() || urlId.getText().isEmpty()));
         urlId.textProperty().addListener((observable, oldValue, newValue) ->
-                applyButton.setDisable(newValue.trim().isEmpty()
-                        || name.getText().isEmpty()));
+                applyButton.setDisable(newValue.trim().isEmpty() || name.getText().isEmpty()));
 
         dialog.getDialogPane().setContent(grid);
 
@@ -75,14 +71,12 @@ public final class AddChannelDialog {
         dialog.setResultConverter(dialogButton -> {
             manager.enableButton(btn);
             if (dialogButton == ButtonType.OK) {
-                return new Pair<>(name.getText(), urlId.getText());
+                return new Channel(name.getText(), urlId.getText());
             }
             return null;
         });
 
-        Optional<Pair<String, String>> result = dialog.showAndWait();
-
-        result.ifPresent(channel -> manager.onChannelAdded(
-                channel.getKey(), channel.getValue()));
+        Optional<Channel> result = dialog.showAndWait();
+        result.ifPresent(manager::onChannelAdded);
     }
 }

@@ -7,3 +7,6 @@ out
 gradlew
 gradlew.bat
 YTSubscriber.log
+/objectbox-models/default.json.bak
+/objectbox/
+/libobjectbox-jni-linux-x64.so

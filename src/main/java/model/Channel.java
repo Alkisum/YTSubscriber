@@ -1,61 +1,75 @@
 package model;
 
-import config.Config;
-import database.Database;
-import exception.ExceptionHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
+import io.objectbox.annotation.Backlink;
+import io.objectbox.annotation.Entity;
+import io.objectbox.annotation.Id;
+import io.objectbox.annotation.Transient;
+import io.objectbox.relation.ToMany;
+import utils.Channels;
 
 /**
  * Class defining channel.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
+@Entity
 public class Channel {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(Channel.class);
-
-    /**
-     * Default base URL for channels.
-     */
-    public static final String BASE_URL =
-            "https://www.youtube.com/feeds/videos.xml?channel_id=";
 
     /**
      * Channel id.
      */
-    private final int id;
+    @Id
+    private long id;
 
     /**
      * Channel name.
      */
-    private final String name;
+    private String name;
 
     /**
      * Channel subscribed flag.
      */
-    private final boolean subscribed;
-
-    /**
-     * The channel is selected ini the manager list.
-     */
-    private boolean checked;
+    private boolean subscribed;
 
     /**
      * YT id.
      */
     private String ytId;
+
+    /**
+     * List of videos attached to the channel.
+     */
+    @Backlink
+    private ToMany<Video> videos;
+
+    /**
+     * The channel is selected in the manager list.
+     */
+    @Transient
+    private boolean checked;
+
+    /**
+     * Channel constructor.
+     */
+    public Channel() {
+
+    }
+
+    /**
+     * Channel constructor.
+     *
+     * @param name Channel name
+     * @param ytId YT id
+     */
+    public Channel(final String name, final String ytId) {
+        this.id = 0;
+        this.name = name;
+        this.subscribed = false;
+        this.ytId = ytId;
+        this.checked = false;
+    }
 
     /**
      * Channel constructor.
@@ -65,157 +79,107 @@ public class Channel {
      * @param subscribed Channel subscribed flag
      * @param ytId       YT id
      */
-    public Channel(final int id, final String name, final boolean subscribed,
-                   final String ytId) {
+    public Channel(final int id, final String name, final boolean subscribed, final String ytId) {
         this.id = id;
         this.name = name;
         this.subscribed = subscribed;
-        checked = false;
         this.ytId = ytId;
-    }
-
-    @Override
-    public final String toString() {
-        try {
-            return name
-                    + " (" + Database.countUnwatchedVideosByChannel(id) + ")";
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    /**
-     * Clean the channel from the videos watched and not existing anymore
-     * in the RSS Feeds.
-     *
-     * @param ytIdList List of video YT id existing in the RSS Feed.
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing a statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public final void clean(final List<String> ytIdList)
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        List<Video> videoList = Database.getAllVideosByChannel(id);
-        for (Video video : videoList) {
-            if (!ytIdList.contains(video.getYtId()) && video.isWatched()) {
-                Database.deleteVideo(video);
-            }
-        }
+        this.checked = false;
     }
 
     /**
      * @return Channel id
      */
-    public final int getId() {
+    public long getId() {
         return id;
+    }
+
+    /**
+     * @param id Channel id to set
+     */
+    public void setId(final long id) {
+        this.id = id;
     }
 
     /**
      * @return Channel name
      */
-    public final String getName() {
+    public String getName() {
         return name;
     }
 
     /**
-     * @return Channel URL
+     * @param name Channel name to set.
      */
-    public final String getUrl() {
-        return getBaseUrl() + ytId;
+    public void setName(final String name) {
+        this.name = name;
     }
 
     /**
      * @return Channel subscribed flag
      */
-    public final boolean isSubscribed() {
+    public boolean isSubscribed() {
         return subscribed;
     }
 
     /**
-     * @return Channel is selected in manager list
+     * @param subscribed Channel subscribed flag to set
      */
-    public final boolean isChecked() {
-        return checked;
-    }
-
-    /**
-     * @param checked Select the channel in manager list
-     */
-    public final void setChecked(final boolean checked) {
-        this.checked = checked;
+    public void setSubscribed(final boolean subscribed) {
+        this.subscribed = subscribed;
     }
 
     /**
      * @return YT id
      */
-    public final String getYtId() {
+    public String getYtId() {
         return ytId;
     }
 
     /**
      * @param ytId YT id to set
      */
-    public final void setYtId(final String ytId) {
+    public void setYtId(final String ytId) {
         this.ytId = ytId;
     }
 
     /**
-     * Get the feed URL (without id) stored in the configuration file.
-     *
-     * @return Feed base URL
+     * @return List of videos attached to the channel
      */
-    public static String getBaseUrl() {
-        try {
-            String baseUrl = Config.getValue(Config.PROP_CHANNEL_URL_KEY);
-            if (baseUrl == null) {
-                return BASE_URL;
-            }
-            return baseUrl;
-        } catch (IOException e) {
-            return BASE_URL;
-        }
+    public ToMany<Video> getVideos() {
+        return videos;
     }
 
     /**
-     * @return SQL command to create the Channel table
+     * @param videos List of videos to attach to the channel
      */
-    public static String getCreateTableSql() {
-        return "CREATE TABLE IF NOT EXISTS Channel"
-                + "(channel_id         INTEGER  PRIMARY KEY AUTOINCREMENT,"
-                + " channel_name       TEXT NOT NULL,"
-                + " channel_yt_id      TEXT NOT NULL,"
-                + " channel_subscribed INTEGER  NOT NULL);";
+    public void setVideos(final ToMany<Video> videos) {
+        this.videos = videos;
     }
 
     /**
-     * @return Column names separated by commas
+     * @return Channel is selected in manager list
      */
-    private static String getColumnNames() {
-        return "channel_id, channel_name, channel_yt_id, channel_subscribed";
+    public boolean isChecked() {
+        return checked;
     }
 
     /**
-     * Refresh table structure with a new one.
-     *
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the sql
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
+     * @param checked Select the channel in manager list
      */
-    public static void refresh() throws SQLException, ExceptionHandler,
-            ClassNotFoundException {
-        try (Connection c = Database.getConnection();
-             Statement stmt = c.createStatement()) {
-            stmt.executeUpdate("PRAGMA foreign_keys = OFF");
-            stmt.executeUpdate("ALTER TABLE Channel RENAME TO Channel_tmp;");
-            stmt.executeUpdate(getCreateTableSql());
-            stmt.executeUpdate("INSERT INTO Channel(" + getColumnNames() + ")"
-                    + " SELECT " + getColumnNames()
-                    + " FROM Channel_tmp;");
-            stmt.executeUpdate("DROP TABLE Channel_tmp;");
-            stmt.executeUpdate("PRAGMA foreign_keys = ON");
-        }
+    public void setChecked(final boolean checked) {
+        this.checked = checked;
+    }
+
+    /**
+     * @return Channel URL
+     */
+    public String getUrl() {
+        return Channels.getBaseUrl() + ytId;
+    }
+
+    @Override
+    public final String toString() {
+        return name + " (" + Channels.countUnwatchedVideos(id) + ")";
     }
 }

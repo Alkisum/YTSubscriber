@@ -13,11 +13,6 @@ import view.dialog.ExceptionDialog;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -34,7 +29,7 @@ import java.util.Queue;
  * Class handling database operation.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 4.0
  * @since 1.0
  */
 public final class Database {
@@ -47,13 +42,12 @@ public final class Database {
     /**
      * Database schema version.
      */
-    public static final int SCHEMA_VERSION = 4;
+    public static final int SCHEMA_VERSION = 5;
 
     /**
      * Database file.
      */
-    private static final File DB_FILE = new File(
-            Config.USER_DIR + "subscriptions.db");
+    public static final File DB_FILE = new File(Config.USER_DIR + "subscriptions.db");
 
     /**
      * Database URL.
@@ -82,8 +76,8 @@ public final class Database {
      * @throws SQLException           SQL Exception
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public static Queue<Task<?>> init() throws ClassNotFoundException,
-            SQLException, ExceptionHandler {
+    public static Queue<Task<?>> init()
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
         createTables();
         return updateTables();
     }
@@ -97,12 +91,10 @@ public final class Database {
      */
     public static Connection getConnection()
             throws ClassNotFoundException, SQLException, ExceptionHandler {
-        if (DB_FILE.getParentFile().exists()
-                || DB_FILE.getParentFile().mkdirs()) {
+        if (DB_FILE.getParentFile().exists() || DB_FILE.getParentFile().mkdirs()) {
             if (!DB_FILE.exists()) {
                 try {
-                    Config.setValue(Config.PROP_SCHEMA_VERSION,
-                            String.valueOf(SCHEMA_VERSION));
+                    Config.setValue(Config.PROP_SCHEMA_VERSION, String.valueOf(SCHEMA_VERSION));
                 } catch (IOException e) {
                     ExceptionDialog.show(e);
                     LOGGER.error(e);
@@ -126,12 +118,12 @@ public final class Database {
      * @throws SQLException           Exception while executing statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    private static void createTables() throws ClassNotFoundException,
-            SQLException, ExceptionHandler {
+    private static void createTables()
+            throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              Statement stmt = c.createStatement()) {
-            stmt.executeUpdate(Channel.getCreateTableSql());
-            stmt.executeUpdate(Video.getCreateTableSql());
+            stmt.executeUpdate(getChannelCreateTableSql());
+            stmt.executeUpdate(getVideoCreateTableSql());
         }
     }
 
@@ -152,8 +144,7 @@ public final class Database {
             DatabaseMetaData md = c.getMetaData();
 
             // Channel subscribed (since v1.2)
-            ResultSet rs = md.getColumns(
-                    null, null, "Channel", "channel_subscribed");
+            ResultSet rs = md.getColumns(null, null, "Channel", "channel_subscribed");
             if (!rs.next()) {
                 updateToVersion2(stmt);
             }
@@ -162,6 +153,7 @@ public final class Database {
             rs = md.getColumns(null, null, "Video", "video_duration");
             if (!rs.next()) {
                 updateToVersion3(stmt);
+                LOGGER.debug("getUpdateVideoDurationTask");
                 tasks.add(DatabaseUpdater.getUpdateVideoDurationTask());
             }
 
@@ -179,10 +171,20 @@ public final class Database {
             // Channel and video YT ids (since v2.4 - schema version 4)
             if (schemaVersion == null || schemaVersion < 4) {
                 updateToVersion4(stmt);
+                LOGGER.debug("getUpdateChannelUrlTask");
                 tasks.add(DatabaseUpdater.getUpdateChannelUrlTask());
+                LOGGER.debug("getUpdateVideoUrlTask");
                 tasks.add(DatabaseUpdater.getUpdateVideoUrlTask());
+                LOGGER.debug("getUpdateVideoTimeTask");
                 tasks.add(DatabaseUpdater.getUpdateVideoTimeTask());
+                LOGGER.debug("getRefreshTablesTask");
                 tasks.add(DatabaseUpdater.getRefreshTablesTask());
+            }
+
+            // Migration to ObjectBox
+            if (schemaVersion == null || schemaVersion < 5) {
+                LOGGER.debug("getMigrateToObjectBoxTask");
+                tasks.add(DatabaseUpdater.getMigrateToObjectBoxTask());
             }
 
             if (tasks.isEmpty()) {
@@ -200,10 +202,8 @@ public final class Database {
      * @param stmt Statement
      * @throws SQLException Exception while executing statement
      */
-    private static void updateToVersion2(final Statement stmt)
-            throws SQLException {
-        String sql = "ALTER TABLE Channel ADD COLUMN channel_subscribed"
-                + " INTEGER DEFAULT 1;";
+    private static void updateToVersion2(final Statement stmt) throws SQLException {
+        String sql = "ALTER TABLE Channel ADD COLUMN channel_subscribed INTEGER DEFAULT 1;";
         stmt.executeUpdate(sql);
     }
 
@@ -214,15 +214,13 @@ public final class Database {
      * @param stmt Statement
      * @throws SQLException Exception while executing statement
      */
-    private static void updateToVersion3(final Statement stmt)
-            throws SQLException {
-        String sql = "ALTER TABLE Video ADD COLUMN video_duration"
-                + " INTEGER DEFAULT 0;";
+    private static void updateToVersion3(final Statement stmt) throws SQLException {
+        String sql = "ALTER TABLE Video ADD COLUMN video_duration INTEGER DEFAULT 0;";
         stmt.executeUpdate(sql);
     }
 
     /**
-     * Update database to version 3:
+     * Update database to version 4:
      * - Add column "channel_yt_id"
      * - Add column "video_yt_id"
      * - Add column "video_time".
@@ -230,50 +228,24 @@ public final class Database {
      * @param stmt Statement
      * @throws SQLException Exception while executing statement
      */
-    private static void updateToVersion4(final Statement stmt)
-            throws SQLException {
-        String sql = "ALTER TABLE Channel ADD COLUMN channel_yt_id"
-                + " TEXT DEFAULT '';";
+    private static void updateToVersion4(final Statement stmt) throws SQLException {
+        String sql = "ALTER TABLE Channel ADD COLUMN channel_yt_id TEXT DEFAULT '';";
         sql += "ALTER TABLE Video ADD COLUMN video_yt_id TEXT DEFAULT '';";
         sql += "ALTER TABLE Video ADD COLUMN video_time INTEGER DEFAULT 0;";
         stmt.executeUpdate(sql);
     }
 
     /**
-     * @param id Channel id
-     * @return The channel's name with the given id
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static String getChannelNameById(final int id)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "SELECT channel_name FROM Channel WHERE channel_id=?;")) {
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("channel_name");
-            }
-            return "";
-        }
-    }
-
-    /**
      * @return All channels
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
+     * @throws SQLException           Exception while executing the select statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     public static List<Channel> getAllChannels()
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM Channel "
-                     + "ORDER BY channel_name COLLATE NOCASE;")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM Channel;")) {
             List<Channel> channels = new ArrayList<>();
             while (rs.next()) {
                 channels.add(
@@ -290,188 +262,22 @@ public final class Database {
     }
 
     /**
-     * Insert channel to database.
-     *
-     * @param name Channel name
-     * @param ytId Channel YT ID
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the insert
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void insertChannel(final String name, final String ytId)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "INSERT INTO Channel (channel_name, "
-                             + "channel_subscribed, channel_yt_id) "
-                             + "VALUES (?, ?, ?);")) {
-            stmt.setString(1, name);
-            stmt.setBoolean(2, false);
-            stmt.setString(3, ytId);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Update channel in database.
-     *
-     * @param id   Channel id
-     * @param name Channel name
-     * @param ytId Channel YT ID
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void updateChannel(final int id, final String name,
-                                     final String ytId)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Channel SET channel_name=?, channel_yt_id=? "
-                             + "WHERE channel_id=?;")) {
-            stmt.setString(1, name);
-            stmt.setString(2, ytId);
-            stmt.setInt(3, id);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Update the channel subscribed flag in database.
-     *
-     * @param id         Channel id
-     * @param subscribed Channel subscribed flag
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void updateChannelSubscription(final int id,
-                                                 final boolean subscribed)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Channel SET channel_subscribed=? "
-                             + "WHERE channel_id=?;")) {
-            stmt.setBoolean(1, subscribed);
-            stmt.setInt(2, id);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
      * Update the given channels' YT ID.
      *
      * @param channels List of channels to update
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
+     * @throws SQLException           Exception while executing the update statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     static void updateChannelYtId(final List<Channel> channels)
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Channel SET channel_yt_id=? "
-                             + "WHERE channel_id=?;")) {
+                     "UPDATE Channel SET channel_yt_id=? WHERE channel_id=?;")) {
             c.setAutoCommit(false);
             for (Channel channel : channels) {
                 stmt.setString(1, channel.getYtId());
-                stmt.setInt(2, channel.getId());
-                stmt.executeUpdate();
-            }
-            c.commit();
-        }
-    }
-
-    /**
-     * Delete channel from database.
-     *
-     * @param id Channel id
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void deleteChannel(final int id)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        deleteVideosByChannel(id);
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "DELETE FROM Channel WHERE channel_id=?;")) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Delete a list of channels from database.
-     *
-     * @param idList List of channel id
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void deleteChannels(final List<Integer> idList)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        deleteVideosByChannels(idList);
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "DELETE FROM Channel WHERE channel_id=?;")) {
-            c.setAutoCommit(false);
-            for (Integer id : idList) {
-                stmt.setInt(1, id);
-                stmt.executeUpdate();
-            }
-            c.commit();
-        }
-    }
-
-    /**
-     * Delete the videos attached to channel with the given id.
-     *
-     * @param id Channel id
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    private static void deleteVideosByChannel(final int id)
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        // Delete videos' thumbnails
-        getAllVideosByChannel(id).forEach(Database::deleteThumbnail);
-        // Delete videos from database
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "DELETE FROM Video WHERE video_channel_id=?;")) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Delete the videos attached to channels with the given ids.
-     *
-     * @param idList List of channel id
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    private static void deleteVideosByChannels(final List<Integer> idList)
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        // Delete videos from database
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "DELETE FROM Video WHERE video_channel_id=?;")) {
-            c.setAutoCommit(false);
-            for (Integer id : idList) {
-                // Delete videos' thumbnails
-                getAllVideosByChannel(id).forEach(Database::deleteThumbnail);
-                stmt.setInt(1, id);
+                stmt.setLong(2, channel.getId());
                 stmt.executeUpdate();
             }
             c.commit();
@@ -481,8 +287,7 @@ public final class Database {
     /**
      * @return All the videos
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
+     * @throws SQLException           Exception while executing the select statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     public static List<Video> getAllVideos()
@@ -498,122 +303,16 @@ public final class Database {
      * @param channelId Channel id to get the videos from
      * @return All the videos of the given channel
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
+     * @throws SQLException           Exception while executing the select statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    public static List<Video> getAllVideosByChannel(final int channelId)
+    public static List<Video> getAllVideosByChannel(final long channelId)
             throws ClassNotFoundException, SQLException, ExceptionHandler {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement("SELECT * FROM Video "
                      + "WHERE video_channel_id=? ORDER BY video_time DESC;")) {
-            stmt.setInt(1, channelId);
+            stmt.setLong(1, channelId);
             return buildVideoListFromResultSet(stmt.executeQuery());
-        }
-    }
-
-    /**
-     * @return The videos that have not been watched
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static List<Video> getUnwatchedVideos()
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        try (Connection c = getConnection();
-             Statement stmt = c.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM Video, Channel "
-                     + "WHERE video_channel_id=channel_id "
-                     + "AND video_watched=0 "
-                     + "AND channel_subscribed=1 "
-                     + "ORDER BY video_time DESC;")) {
-            return buildVideoListFromResultSet(rs);
-        }
-    }
-
-    /**
-     * Count the number of unwatched videos.
-     *
-     * @return Number of unwatched videos
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static int countUnwatchedVideos()
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) "
-                     + "AS unwatched FROM Video, Channel "
-                     + "WHERE video_channel_id=channel_id "
-                     + "AND video_watched=0 "
-                     + "AND channel_subscribed=1;")) {
-            ResultSet rs = stmt.executeQuery();
-            return rs.getInt("unwatched");
-        }
-    }
-
-    /**
-     * Count the number of unwatched videos by channel.
-     *
-     * @param channelId Channel id
-     * @return Number of unwatched videos
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static int countUnwatchedVideosByChannel(final int channelId)
-            throws SQLException, ClassNotFoundException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) "
-                     + "AS unwatched FROM Video WHERE video_channel_id=? AND "
-                     + "video_watched=0;")) {
-            stmt.setInt(1, channelId);
-            ResultSet rs = stmt.executeQuery();
-            return rs.getInt("unwatched");
-        }
-    }
-
-    /**
-     * Update the given video's watch state.
-     *
-     * @param video   Video to update
-     * @param watched True if the video has been watched, false otherwise
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void updateVideoWatchState(final Video video,
-                                             final boolean watched)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Video SET video_watched=? WHERE video_id=?;")) {
-            stmt.setBoolean(1, watched);
-            stmt.setInt(2, video.getId());
-            stmt.executeUpdate();
-        }
-    }
-
-    /**
-     * Update all the videos watch state.
-     *
-     * @param watched True if the videos have been watched, false otherwise
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void updateVideoWatchState(final boolean watched)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "UPDATE Video SET video_watched=?;")) {
-            stmt.setBoolean(1, watched);
-            stmt.executeUpdate();
         }
     }
 
@@ -622,8 +321,7 @@ public final class Database {
      *
      * @param videos List of videos to update
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
+     * @throws SQLException           Exception while executing the update statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     static void updateVideoDuration(final List<Video> videos)
@@ -634,7 +332,7 @@ public final class Database {
             c.setAutoCommit(false);
             for (Video video : videos) {
                 stmt.setLong(1, video.getDuration());
-                stmt.setInt(2, video.getId());
+                stmt.setLong(2, video.getId());
                 stmt.executeUpdate();
             }
             c.commit();
@@ -646,8 +344,7 @@ public final class Database {
      *
      * @param videos List of videos to update
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
+     * @throws SQLException           Exception while executing the update statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     static void updateVideoYtId(final List<Video> videos)
@@ -658,7 +355,7 @@ public final class Database {
             c.setAutoCommit(false);
             for (Video video : videos) {
                 stmt.setString(1, video.getYtId());
-                stmt.setInt(2, video.getId());
+                stmt.setLong(2, video.getId());
                 stmt.executeUpdate();
             }
             c.commit();
@@ -670,8 +367,7 @@ public final class Database {
      *
      * @param videos List of videos to update
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the update
-     *                                statement
+     * @throws SQLException           Exception while executing the update statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
     static void updateVideoTime(final List<Video> videos)
@@ -682,68 +378,8 @@ public final class Database {
             c.setAutoCommit(false);
             for (Video video : videos) {
                 stmt.setLong(1, video.getTime());
-                stmt.setInt(2, video.getId());
+                stmt.setLong(2, video.getId());
                 stmt.executeUpdate();
-            }
-            c.commit();
-        }
-    }
-
-    /**
-     * Check if the video already exists in the database.
-     *
-     * @param ytId Video YT ID
-     * @return True if the video exists, false if it does not
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static boolean videoExists(final String ytId)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement("SELECT 1 FROM Video "
-                     + "WHERE video_yt_id=? LIMIT 1;")) {
-            stmt.setString(1, ytId);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next();
-        }
-    }
-
-    /**
-     * Insert the videos into the database.
-     *
-     * @param videos List of videos to insert
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the insert
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     * @throws IOException            Exception while downloading the thumbnail
-     */
-    public static void insertVideos(final List<Video> videos)
-            throws SQLException, ClassNotFoundException, IOException,
-            ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "INSERT INTO Video (video_title, video_time, "
-                             + "video_thumbnail_url, video_watched, "
-                             + "video_channel_id, video_duration, video_yt_id) "
-                             + "VALUES (?, ?, ?, ?, ?, ?, ?);")) {
-            c.setAutoCommit(false);
-            for (Video video : videos) {
-                stmt.setString(1, video.getTitle());
-                stmt.setLong(2, video.getTime());
-                stmt.setString(3, video.getThumbnailUrl());
-                stmt.setBoolean(4, false);
-                stmt.setInt(5, video.getChannelId());
-                stmt.setLong(6, video.getDuration());
-                stmt.setString(7, video.getYtId());
-                stmt.executeUpdate();
-
-                // Download thumbnail
-                int id = stmt.getGeneratedKeys().getInt(1);
-                String path = Video.THUMBNAIL_PATH + id + Video.THUMBNAIL_EXT;
-                downloadThumbnail(video.getThumbnailUrl(), path);
             }
             c.commit();
         }
@@ -767,8 +403,6 @@ public final class Database {
                             rs.getString("video_title"),
                             rs.getLong("video_time"),
                             rs.getString("video_thumbnail_url"),
-                            new File(Video.THUMBNAIL_PATH + id
-                                    + Video.THUMBNAIL_EXT),
                             rs.getBoolean("video_watched"),
                             rs.getInt("video_channel_id"),
                             rs.getInt("video_duration"),
@@ -780,71 +414,21 @@ public final class Database {
     }
 
     /**
-     * Download the video thumbnail.
-     *
-     * @param src Source URL to get the thumbnail from
-     * @param dst Destination path where to copy the thumbnail to
-     * @throws IOException Exception while downloading the thumbnail
-     */
-    private static void downloadThumbnail(final String src, final String dst)
-            throws IOException {
-        File thumbnail = new File(dst);
-        if (thumbnail.getParentFile().exists()
-                || thumbnail.getParentFile().mkdirs()) {
-            try (InputStream in = new URL(src).openStream()) {
-                Files.copy(in, Paths.get(thumbnail.getAbsolutePath()),
-                        StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
-    }
-
-    /**
-     * Delete video thumbnail.
-     *
-     * @param video Video's thumbnail
-     * @return true if the thumbnail file has been deleted, false otherwise
-     */
-    private static boolean deleteThumbnail(final Video video) {
-        return video.getThumbnail().exists() && video.getThumbnail().delete();
-    }
-
-    /**
-     * Delete video from database.
-     *
-     * @param video Video to delete
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    public static void deleteVideo(final Video video)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
-        try (Connection c = getConnection();
-             PreparedStatement stmt = c.prepareStatement(
-                     "DELETE FROM Video WHERE video_id=?;")) {
-            stmt.setInt(1, video.getId());
-            stmt.executeUpdate();
-            deleteThumbnail(video);
-        }
-    }
-
-    /**
      * Get channel URL stored in the database that belongs to the channel with
      * the given id. Must be used only with schema version lower than 4.
      *
      * @param id Channel id
      * @return Channel URL
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
+     * @throws SQLException           Exception while executing the delete statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    static String getChannelUrlFromDb(final int id) throws SQLException,
+    static String getChannelUrlFromDb(final long id) throws SQLException,
             ExceptionHandler, ClassNotFoundException {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
                      "SELECT channel_url FROM Channel WHERE channel_id=?;")) {
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("channel_url");
@@ -861,16 +445,15 @@ public final class Database {
      * @param id Video id
      * @return Video URL
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
+     * @throws SQLException           Exception while executing the delete statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    static String getVideoUrlFromDb(final int id) throws SQLException,
+    static String getVideoUrlFromDb(final long id) throws SQLException,
             ExceptionHandler, ClassNotFoundException {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
                      "SELECT video_url FROM Video WHERE video_id=?;")) {
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("video_url");
@@ -887,21 +470,104 @@ public final class Database {
      * @param id Video id
      * @return Video URL
      * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the delete
-     *                                statement
+     * @throws SQLException           Exception while executing the delete statement
      * @throws ExceptionHandler       Exception while accessing config directory
      */
-    static String getVideoDateFromDb(final int id) throws SQLException,
+    static String getVideoDateFromDb(final long id) throws SQLException,
             ExceptionHandler, ClassNotFoundException {
         try (Connection c = getConnection();
              PreparedStatement stmt = c.prepareStatement(
                      "SELECT video_date FROM Video WHERE video_id=?;")) {
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("video_date");
             }
             return "";
         }
+    }
+
+    /**
+     * Refresh table structure with a new one.
+     *
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the sql statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static void refreshChannel() throws SQLException, ExceptionHandler,
+            ClassNotFoundException {
+        try (Connection c = Database.getConnection();
+             Statement stmt = c.createStatement()) {
+            stmt.executeUpdate("PRAGMA foreign_keys = OFF");
+            stmt.executeUpdate("ALTER TABLE Channel RENAME TO Channel_tmp;");
+            stmt.executeUpdate(getChannelCreateTableSql());
+            stmt.executeUpdate("INSERT INTO Channel(" + getChannelColumnNames() + ")"
+                    + " SELECT " + getChannelColumnNames() + " FROM Channel_tmp;");
+            stmt.executeUpdate("DROP TABLE Channel_tmp;");
+            stmt.executeUpdate("PRAGMA foreign_keys = ON");
+        }
+    }
+
+    /**
+     * @return SQL command to create the Channel table
+     */
+    private static String getChannelCreateTableSql() {
+        return "CREATE TABLE IF NOT EXISTS Channel"
+                + "(channel_id         INTEGER  PRIMARY KEY AUTOINCREMENT,"
+                + " channel_name       TEXT NOT NULL,"
+                + " channel_yt_id      TEXT NOT NULL,"
+                + " channel_subscribed INTEGER  NOT NULL);";
+    }
+
+    /**
+     * @return Column names separated by commas
+     */
+    private static String getChannelColumnNames() {
+        return "channel_id, channel_name, channel_yt_id, channel_subscribed";
+    }
+
+    /**
+     * Refresh table structure with a new one.
+     *
+     * @throws ClassNotFoundException Exception while trying to use JDBC driver
+     * @throws SQLException           Exception while executing the sql statement
+     * @throws ExceptionHandler       Exception while accessing config directory
+     */
+    public static void refreshVideo() throws SQLException, ExceptionHandler,
+            ClassNotFoundException {
+        try (Connection c = Database.getConnection();
+             Statement stmt = c.createStatement()) {
+
+            stmt.executeUpdate("ALTER TABLE Video RENAME TO Video_tmp;");
+            stmt.executeUpdate(getVideoCreateTableSql());
+            stmt.executeUpdate("INSERT INTO Video(" + getVideoColumnNames() + ")"
+                    + " SELECT " + getVideoColumnNames() + " FROM Video_tmp;");
+            stmt.executeUpdate("DROP TABLE Video_tmp;");
+        }
+    }
+
+    /**
+     * @return SQL command to create the Video table
+     */
+    private static String getVideoCreateTableSql() {
+        return "CREATE TABLE IF NOT EXISTS Video"
+                + "(video_id            INTEGER  PRIMARY KEY AUTOINCREMENT,"
+                + " video_title         TEXT NOT NULL,"
+                + " video_time          TEXT NOT NULL,"
+                + " video_thumbnail_url TEXT NOT NULL,"
+                + " video_watched       INTEGER  NOT NULL,"
+                + " video_channel_id    INTEGER  NOT NULL,"
+                + " video_duration      INTEGER  NOT NULL,"
+                + " video_yt_id         TEXT NOT NULL,"
+                + " FOREIGN KEY(video_channel_id)"
+                + " REFERENCES Channel(channel_id));";
+    }
+
+    /**
+     * @return Column names separated by commas
+     */
+    private static String getVideoColumnNames() {
+        return "video_id, video_title, video_time, video_thumbnail_url, video_watched, "
+                +  "video_channel_id, video_duration, video_yt_id";
     }
 }

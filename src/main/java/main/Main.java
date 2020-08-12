@@ -2,6 +2,7 @@ package main;
 
 import config.Config;
 import controller.Updater;
+import database.ObjectBox;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -18,7 +19,7 @@ import java.io.IOException;
  * Main class.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 4.0
  * @since 1.0
  */
 public class Main extends Application {
@@ -42,8 +43,7 @@ public class Main extends Application {
     public final void start(final Stage primaryStage) throws Exception {
         Config.setDefaultValues();
 
-        FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/updater.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/updater.fxml"));
         Scene scene = new Scene(loader.load(), Updater.WIDTH, Updater.HEIGHT);
 
         // Set instances to controller
@@ -52,8 +52,7 @@ public class Main extends Application {
         updater.initTheme(scene);
 
         primaryStage.setTitle("YTSubscriber");
-        primaryStage.getIcons().add(new Image(
-                getClass().getResourceAsStream("/icons/app.png")));
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/app.png")));
         primaryStage.setScene(scene);
 
         setWindow(scene);
@@ -63,6 +62,7 @@ public class Main extends Application {
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(event -> {
+            ObjectBox.close();
             double width = scene.getWindow().getWidth();
             double height = scene.getWindow().getHeight();
             double x = scene.getWindow().getX();
@@ -96,8 +96,7 @@ public class Main extends Application {
             String heightValue = Config.getValue(Config.PROP_HEIGHT_KEY);
             String xValue = Config.getValue(Config.PROP_X_KEY);
             String yValue = Config.getValue(Config.PROP_Y_KEY);
-            if (widthValue != null && heightValue != null
-                    && xValue != null && yValue != null) {
+            if (widthValue != null && heightValue != null && xValue != null && yValue != null) {
                 double width = Double.parseDouble(widthValue);
                 if (width < MIN_WIDTH) {
                     width = MIN_WIDTH;

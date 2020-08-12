@@ -10,7 +10,7 @@ import java.util.Optional;
  * Utility class to show a confirmation dialog.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 4.0
  * @since 1.0
  */
 public final class ConfirmationDialog {
@@ -30,7 +30,7 @@ public final class ConfirmationDialog {
      * @param task    Task to run when the dialog is confirmed
      */
     public static void show(final String title, final String message,
-                            final Task task) {
+                            final Task<Void> task) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);

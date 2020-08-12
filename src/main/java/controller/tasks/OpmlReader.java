@@ -2,11 +2,11 @@ package controller.tasks;
 
 import javafx.concurrent.Task;
 import model.Channel;
-import database.Database;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import utils.Channels;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,7 +21,7 @@ import java.util.List;
  * Task reading the OPML file to import a list of channels to subscribe.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class OpmlReader extends Task<List<Channel>> {
@@ -44,8 +44,7 @@ public class OpmlReader extends Task<List<Channel>> {
     protected final List<Channel> call() throws Exception {
         List<Channel> channels = new ArrayList<>();
 
-        DocumentBuilderFactory dbFactory =
-                DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.parse(file);
 
@@ -68,7 +67,7 @@ public class OpmlReader extends Task<List<Channel>> {
                     updateProgress(i + 1, nodeList.getLength());
                     updateMessage("Importing " + name + "...");
                     String ytId = url.substring(url.lastIndexOf("=") + 1);
-                    Database.insertChannel(name, ytId);
+                    Channels.create(new Channel(name, ytId));
                 } catch (MalformedURLException | URISyntaxException e) {
                     // Nothing to do here, just don't add the channel
                 }

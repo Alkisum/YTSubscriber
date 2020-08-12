@@ -1,7 +1,6 @@
 package controller.tasks;
 
 import config.Config;
-import database.Database;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import model.Channel;
@@ -10,6 +9,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import utils.Channels;
+import utils.Videos;
 import view.dialog.ErrorDialog;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,7 +25,7 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class RssReader extends Task<Void> {
@@ -56,8 +57,6 @@ public class RssReader extends Task<Void> {
 
     @Override
     protected final Void call() throws Exception {
-
-        List<Video> videos = new ArrayList<>();
         boolean durationError = false;
 
         updateMessage("Initializing...");
@@ -66,12 +65,11 @@ public class RssReader extends Task<Void> {
 
             Channel channel = channels.get(c);
 
-            // Create a YT ID list to check whether there are videos in the
-            // database that have been watched and not in the feed anymore
+            // Create a YT ID list to check whether there are videos in the database that have been
+            // watched and not in the feed anymore
             List<String> ytIds = new ArrayList<>();
 
-            DocumentBuilderFactory dbFactory =
-                    DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             Document doc;
@@ -82,7 +80,6 @@ public class RssReader extends Task<Void> {
                 // Jump to next channel
                 continue;
             }
-
 
             doc.getDocumentElement().normalize();
 
@@ -100,19 +97,16 @@ public class RssReader extends Task<Void> {
                     Element eltEntry = (Element) nodeEntry;
 
                     // YT ID
-                    String ytId = eltEntry.getElementsByTagName("yt:videoId")
-                            .item(0).getTextContent();
+                    String ytId = getText(eltEntry, "yt:videoId");
                     if (ytId == null) {
                         continue;
                     }
 
                     // Title
-                    String title = eltEntry.getElementsByTagName("title")
-                            .item(0).getTextContent();
+                    String title = getText(eltEntry, "title");
 
                     // URL
-                    Node nodeUrl = eltEntry.getElementsByTagName("link")
-                            .item(0);
+                    Node nodeUrl = getNode(eltEntry, "link");
                     String url = null;
                     if (nodeUrl.getNodeType() == Node.ELEMENT_NODE) {
                         Element eltUrl = (Element) nodeUrl;
@@ -120,61 +114,47 @@ public class RssReader extends Task<Void> {
                     }
 
                     // Date
-                    String date = eltEntry.getElementsByTagName("published")
-                            .item(0).getTextContent();
+                    String date = getText(eltEntry, "published");
                     Date parsedDate = PUBLISHED_FORMAT.parse(date);
 
                     // Thumbnail
-                    Node nodeMedia = eltEntry.getElementsByTagName(
-                            "media:group").item(0);
+                    Node nodeMedia = getNode(eltEntry, "media:group");
                     String thumbnail = null;
                     if (nodeMedia.getNodeType() == Node.ELEMENT_NODE) {
                         Element eltMedia = (Element) nodeMedia;
-                        Node nodeThumbnail = eltMedia.getElementsByTagName(
-                                "media:thumbnail").item(0);
+                        Node nodeThumbnail = getNode(eltMedia, "media:thumbnail");
                         if (nodeThumbnail.getNodeType() == Node.ELEMENT_NODE) {
                             Element eltThumbnail = (Element) nodeThumbnail;
                             thumbnail = eltThumbnail.getAttribute("url");
                         }
                     }
 
-                    if (!Database.videoExists(ytId)) {
-
+                    if (!Videos.exists(ytId)) {
                         // Duration
                         long duration = 0;
-                        if (url != null && Config.getValue(
-                                Config.PROP_API_KEY) != null) {
+                        if (url != null && Config.getValue(Config.PROP_API_KEY) != null) {
                             try {
-                                duration = Video.retrieveDuration(ytId);
+                                duration = Videos.retrieveDuration(ytId);
                             } catch (Exception e) {
                                 durationError = true;
                             }
                         }
 
-                        videos.add(new Video(
-                                title,
-                                parsedDate.getTime(),
-                                thumbnail,
-                                channel.getId(),
-                                duration,
-                                ytId));
+                        // Save video
+                        Videos.create(new Video(title, parsedDate.getTime(), thumbnail, duration,
+                                ytId, channel));
                     }
 
                     ytIds.add(ytId);
                 }
             }
-            channel.clean(ytIds);
-        }
-        if (!videos.isEmpty()) {
-            updateProgress(-1, 0);
-            updateMessage("Downloading thumbnails...");
-            Database.insertVideos(videos);
+            Channels.clean(channel, ytIds);
         }
 
         // Errors occurred when reading durations
         if (durationError) {
             Platform.runLater(() -> ErrorDialog.show("Duration error",
-                    "An error occurred when reading the duration from videos.")
+                    "An error occurred while reading the duration from videos.")
             );
         }
         return null;
@@ -185,5 +165,27 @@ public class RssReader extends Task<Void> {
      */
     public final List<Channel> getNotFoundChannels() {
         return notFoundChannels;
+    }
+
+    /**
+     * Get the first node found with the given tag name in the given element.
+     *
+     * @param element Element to search
+     * @param tagName Tag name to search
+     * @return Node found
+     */
+    private Node getNode(final Element element, final String tagName) {
+        return element.getElementsByTagName(tagName).item(0);
+    }
+
+    /**
+     * Get the text of the first node found with the given tag name in the given element.
+     *
+     * @param element Element to search
+     * @param tagName Tag name to search
+     * @return Text found
+     */
+    private String getText(final Element element, final String tagName) {
+        return element.getElementsByTagName(tagName).item(0).getTextContent();
     }
 }

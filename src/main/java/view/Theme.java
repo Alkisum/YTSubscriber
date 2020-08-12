@@ -8,7 +8,7 @@ import java.io.IOException;
  * Class handling themes.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 2.0
  */
 public final class Theme {
@@ -104,7 +104,7 @@ public final class Theme {
      * @return true if the theme is valid, false otherwise
      */
     private static boolean isValid(final String theme) {
-        return theme.equals(CLASSIC) || theme.equals(DARK);
+        return CLASSIC.equals(theme) || DARK.equals(theme);
     }
 
     /**

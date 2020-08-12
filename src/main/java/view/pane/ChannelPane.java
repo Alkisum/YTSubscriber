@@ -21,7 +21,7 @@ import java.util.List;
  * Pane extending GridPane and containing Channel attributes.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class ChannelPane extends GridPane {
@@ -42,8 +42,7 @@ public class ChannelPane extends GridPane {
      * @param manager  Manager instance
      * @param channels List of channel to populate the GridPane
      */
-    public ChannelPane(final Manager manager,
-                       final List<Channel> channels) {
+    public ChannelPane(final Manager manager, final List<Channel> channels) {
         this.manager = manager;
         this.channels = new ArrayList<>(channels);
         setGUI();
@@ -65,8 +64,7 @@ public class ChannelPane extends GridPane {
             // CheckBox
             CheckBox checkBox = new CheckBox();
             checkBox.setSelected(channel.isChecked());
-            checkBox.setOnAction(
-                    event -> channel.setChecked(checkBox.isSelected()));
+            checkBox.setOnAction(event -> channel.setChecked(checkBox.isSelected()));
             add(checkBox, 0, row);
 
             // Name
@@ -89,34 +87,30 @@ public class ChannelPane extends GridPane {
                 subPath = Icon.getIcon(Icon.SUB_OFF);
             }
             buttonSubscribed.setTooltip(tooltip);
-            Image imageSubscribed = new Image(getClass().getResourceAsStream(
-                    subPath));
+            Image imageSubscribed = new Image(getClass().getResourceAsStream(subPath));
             buttonSubscribed.setGraphic(new ImageView(imageSubscribed));
             buttonSubscribed.setOnAction(
-                    (event) -> manager.onSetChannelSubscriptionClicked(
-                            channel));
+                    (event) -> manager.onSetChannelSubscriptionClicked(channel));
             add(buttonSubscribed, 3, row);
 
             // Edit button
             Button buttonEdit = new Button();
             buttonEdit.setTooltip(new Tooltip("Edit channel"));
-            Image imageEdit = new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.EDIT)));
+            Image imageEdit = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.EDIT)));
             buttonEdit.setGraphic(new ImageView(imageEdit));
-            buttonEdit.setOnAction(
-                    (event) -> manager.onEditChannelClicked(event, channel));
+            buttonEdit.setOnAction((event) -> manager.onEditChannelClicked(event, channel));
             add(buttonEdit, 4, row);
 
             // Delete button
             Button buttonDelete = new Button();
             buttonDelete.setTooltip(new Tooltip("Delete channel"));
-            Image imageDelete = new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.DELETE)));
+            Image imageDelete = new Image(
+                    getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE)));
             buttonDelete.setGraphic(new ImageView(imageDelete));
-            buttonDelete.setOnAction(
-                    (event) -> manager.onDeleteChannelClicked(channel));
+            buttonDelete.setOnAction((event) -> manager.onDeleteChannelClicked(channel));
             add(buttonDelete, 5, row);
         }
+
         ColumnConstraints checkBoxConstraint = new ColumnConstraints();
         checkBoxConstraint.setHgrow(Priority.NEVER);
         ColumnConstraints nameConstraint = new ColumnConstraints();

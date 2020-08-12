@@ -26,10 +26,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import kotlin.collections.ArrayDeque;
 import model.Channel;
 import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import utils.Channels;
+import utils.Videos;
 import view.Icon;
 import view.Theme;
 import view.dialog.AboutDialog;
@@ -51,7 +54,7 @@ import java.util.ResourceBundle;
  * Controller for Subscription Updater.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class Updater implements Initializable {
@@ -84,14 +87,13 @@ public class Updater implements Initializable {
     /**
      * List of videos shown in Video's scroll pane.
      */
-    private List<Video> videosShown;
+    private List<Video> videosShown = new ArrayDeque<>();
 
     /**
-     * Identifier to refresh the videos after calling
-     * {@link Updater#onRefreshClicked()}. The identifier is either a channel id
-     * or -1 for unwatched videos.
+     * Identifier to refresh the videos after calling {@link Updater#onRefreshClicked()}.
+     * The identifier is either a channel id or -1 for unwatched videos.
      */
-    private int postRefreshId;
+    private long postRefreshId;
 
     /**
      * Tasks to update the database.
@@ -152,8 +154,7 @@ public class Updater implements Initializable {
     private Button buttonRefresh;
 
     @Override
-    public final void initialize(final URL location,
-                                 final ResourceBundle resources) {
+    public final void initialize(final URL location, final ResourceBundle resources) {
         try {
             // Create database tables if they do not exist yet
             updateTasks = Database.init();
@@ -174,12 +175,12 @@ public class Updater implements Initializable {
     private void setGui() {
         // Initialize channel list
         refreshChannelList();
+
         // Initialize video list
         postRefreshId = UNWATCHED_VIDEOS_ID;
         refreshVideoList();
 
-        buttonSubscriptions.setText(
-                "Subscriptions (" + videosShown.size() + ")");
+        buttonSubscriptions.setText("Subscriptions (" + videosShown.size() + ")");
 
         listViewChannel.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> {
@@ -195,6 +196,7 @@ public class Updater implements Initializable {
      */
     public final void updateDatabase() {
         if (updateTasks == null) {
+            Config.updateSchemaVersion();
             return;
         }
         currentUpdateTask = updateTasks.poll();
@@ -202,14 +204,7 @@ public class Updater implements Initializable {
         // All update tasks succeeded
         if (currentUpdateTask == null) {
             setGui();
-            try {
-                Config.setValue(Config.PROP_SCHEMA_VERSION,
-                        String.valueOf(Database.SCHEMA_VERSION));
-            } catch (IOException e) {
-                ExceptionDialog.show(e);
-                LOGGER.error(e);
-                e.printStackTrace();
-            }
+            Config.updateSchemaVersion();
             return;
         }
 
@@ -234,10 +229,8 @@ public class Updater implements Initializable {
             });
             Window window = scene.getWindow();
 
-            double x = window.getX() + window.getWidth() / 2.0
-                    - ProgressDialog.WIDTH / 2.0;
-            double y = window.getY() + window.getHeight() / 2.0
-                    - ProgressDialog.HEIGHT / 2.0;
+            double x = window.getX() + window.getWidth() / 2.0 - ProgressDialog.WIDTH / 2.0;
+            double y = window.getY() + window.getHeight() / 2.0 - ProgressDialog.HEIGHT / 2.0;
             progressDialog.show(currentUpdateTask, x, y);
             new Thread(currentUpdateTask).start();
         } catch (IOException e) {
@@ -284,8 +277,8 @@ public class Updater implements Initializable {
      */
     private void setCss(final String theme) {
         scene.getStylesheets().clear();
-        scene.getStylesheets().add(getClass().getResource(
-                Theme.getUpdaterCss(theme)).toExternalForm());
+        scene.getStylesheets().add(
+                getClass().getResource(Theme.getUpdaterCss(theme)).toExternalForm());
     }
 
     /**
@@ -314,14 +307,11 @@ public class Updater implements Initializable {
     @FXML
     public final void onManageClicked(final ActionEvent actionEvent) {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/manager.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/manager.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Channel Manager");
-            stage.getIcons().add(new Image(
-                    getClass().getResourceAsStream("/icons/app.png")));
-            stage.setScene(new Scene(loader.load(),
-                    Manager.WIDTH, Manager.HEIGHT));
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/app.png")));
+            stage.setScene(new Scene(loader.load(), Manager.WIDTH, Manager.HEIGHT));
             Manager manager = loader.getController();
             manager.setStage(stage);
             // Disable manager button
@@ -346,18 +336,7 @@ public class Updater implements Initializable {
      */
     @FXML
     public final void onRefreshClicked() {
-        RssReader rssReader = null;
-        try {
-            rssReader = new RssReader(Database.getAllChannels());
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-
-        if (rssReader == null) {
-            return;
-        }
+        RssReader rssReader = new RssReader(Channels.getAllOrderByName());
 
         buttonRefresh.setDisable(true);
 
@@ -378,8 +357,7 @@ public class Updater implements Initializable {
             refreshChannelList();
             refreshVideoList();
 
-            List<Channel> notFoundChannels =
-                    finalRssReaderOnSuccess.getNotFoundChannels();
+            List<Channel> notFoundChannels = finalRssReaderOnSuccess.getNotFoundChannels();
             if (!notFoundChannels.isEmpty()) {
                 StringBuilder message = new StringBuilder();
                 for (Channel channel : notFoundChannels) {
@@ -418,19 +396,10 @@ public class Updater implements Initializable {
         ConfirmationDialog.show(
                 "Watch all videos",
                 "Are you sure you want to set all the videos to watched?",
-                new Task() {
+                new Task<>() {
                     @Override
                     protected Void call() {
-                        try {
-                            Database.updateVideoWatchState(true);
-                            refreshChannelList();
-                            refreshVideoList();
-                        } catch (ClassNotFoundException | SQLException
-                                | ExceptionHandler e) {
-                            ExceptionDialog.show(e);
-                            LOGGER.error(e);
-                            e.printStackTrace();
-                        }
+                        updateAllVideosWatchedState(true);
                         return null;
                     }
                 }
@@ -445,23 +414,29 @@ public class Updater implements Initializable {
         ConfirmationDialog.show(
                 "Unwatch all videos",
                 "Are you sure you want to set all the videos to unwatched?",
-                new Task() {
+                new Task<>() {
                     @Override
                     protected Void call() {
-                        try {
-                            Database.updateVideoWatchState(false);
-                            refreshChannelList();
-                            refreshVideoList();
-                        } catch (ClassNotFoundException | SQLException
-                                | ExceptionHandler e) {
-                            ExceptionDialog.show(e);
-                            LOGGER.error(e);
-                            e.printStackTrace();
-                        }
+                        updateAllVideosWatchedState(false);
                         return null;
                     }
                 }
         );
+    }
+
+    /**
+     * Update all videos watched state.
+     *
+     * @param watched Watched state to set for all videos
+     */
+    private void updateAllVideosWatchedState(final boolean watched) {
+        List<Video> videos = Videos.getAll();
+        for (Video video : videos) {
+            video.setWatched(watched);
+        }
+        Videos.update(videos.toArray(new Video[0]));
+        refreshChannelList();
+        refreshVideoList();
     }
 
     /**
@@ -472,7 +447,7 @@ public class Updater implements Initializable {
         ConfirmationDialog.show(
                 "Delete all videos",
                 "Are you sure you want to delete all the videos?",
-                new Task() {
+                new Task<>() {
                     @Override
                     protected Void call() {
                         deleteAllVideos();
@@ -486,18 +461,7 @@ public class Updater implements Initializable {
      * Delete all videos and their thumbnails.
      */
     private void deleteAllVideos() {
-        VideoDeleter videoDeleter = null;
-        try {
-            videoDeleter = new VideoDeleter(Database.getAllVideos());
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-
-        if (videoDeleter == null) {
-            return;
-        }
+        VideoDeleter videoDeleter = new VideoDeleter(null, Videos.getAll().toArray(new Video[0]));
 
         progressMessage.textProperty().bind(videoDeleter.messageProperty());
         progressBar.progressProperty().bind(videoDeleter.progressProperty());
@@ -536,36 +500,22 @@ public class Updater implements Initializable {
      * Retrieve channels from database and populate the list.
      */
     public final void refreshChannelList() {
-        try {
-            ObservableList<Channel> items = FXCollections.observableArrayList();
-            items.addAll(Database.getAllChannels());
-            listViewChannel.setItems(items);
-            buttonSubscriptions.setText("Subscriptions ("
-                    + Database.countUnwatchedVideos() + ")");
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        ObservableList<Channel> items = FXCollections.observableArrayList();
+        items.addAll(Channels.getAllOrderByName());
+        listViewChannel.setItems(items);
+        buttonSubscriptions.setText("Subscriptions (" + Videos.countUnwatchedVideos() + ")");
     }
 
     /**
      * Refresh the video list.
      */
     public final void refreshVideoList() {
-        try {
-            if (postRefreshId == UNWATCHED_VIDEOS_ID) {
-                videosShown = Database.getUnwatchedVideos();
-            } else {
-                videosShown = Database.getAllVideosByChannel(postRefreshId);
-            }
-            scrollPaneVideo.setContent(new VideoPane(videosShown, this,
-                    progressMessage, progressBar));
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+        if (postRefreshId == UNWATCHED_VIDEOS_ID) {
+            videosShown = Videos.getUnwatchedVideos();
+        } else {
+            videosShown = Videos.getVideosByChannelId(postRefreshId);
         }
+        scrollPaneVideo.setContent(new VideoPane(videosShown, this, progressMessage, progressBar));
     }
 
     /**
@@ -573,7 +523,7 @@ public class Updater implements Initializable {
      *
      * @param channelId Channel id to select
      */
-    public final void selectChannel(final int channelId) {
+    public final void selectChannel(final long channelId) {
         int index = getIndexFromListView(channelId);
         listViewChannel.scrollTo(index);
         listViewChannel.getSelectionModel().select(index);
@@ -585,7 +535,7 @@ public class Updater implements Initializable {
      * @param channelId Channel id to find
      * @return Index of the channel in the list view
      */
-    private int getIndexFromListView(final int channelId) {
+    private int getIndexFromListView(final long channelId) {
         List<Channel> channels = listViewChannel.getItems();
         for (int i = 0; i < channels.size(); i++) {
             if (channelId == channels.get(i).getId()) {

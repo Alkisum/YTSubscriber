@@ -15,7 +15,7 @@ import java.io.StringWriter;
  * Dialog to show Exceptions.
  *
  * @author Alkisum
- * @version 2.4
+ * @version 4.0
  * @since 1.0
  */
 public final class ExceptionDialog {
@@ -94,8 +94,7 @@ public final class ExceptionDialog {
         alert.getDialogPane().expandedProperty().addListener((l) ->
                 Platform.runLater(() -> {
                     alert.getDialogPane().requestLayout();
-                    Stage stage = (Stage)
-                            alert.getDialogPane().getScene().getWindow();
+                    Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
                     stage.sizeToScene();
                 }));
 

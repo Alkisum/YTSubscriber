@@ -1,8 +1,12 @@
 package config;
 
-import model.Channel;
-import model.Video;
+import database.Database;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import utils.Channels;
+import utils.Videos;
 import view.Theme;
+import view.dialog.ExceptionDialog;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,10 +20,15 @@ import java.util.Properties;
  * Class defining the application configuration.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public final class Config {
+
+    /**
+     * Logger.
+     */
+    private static final Logger LOGGER = LogManager.getLogger(Config.class);
 
     /**
      * User directory.
@@ -41,7 +50,7 @@ public final class Config {
     /**
      * Default value for video URL in properties file.
      */
-    private static final String PROP_VIDEO_URL_VALUE = Video.BASE_URL;
+    private static final String PROP_VIDEO_URL_VALUE = Videos.BASE_URL;
 
     /**
      * Key for channel URL in properties file.
@@ -51,7 +60,7 @@ public final class Config {
     /**
      * Default value for channel URL in properties file.
      */
-    private static final String PROP_CHANNEL_URL_VALUE = Channel.BASE_URL;
+    private static final String PROP_CHANNEL_URL_VALUE = Channels.BASE_URL;
 
     /**
      * Key for theme in properties file.
@@ -142,14 +151,16 @@ public final class Config {
      */
     private static boolean createFile() throws IOException {
         File configFile = new File(CONFIG_FILE_PATH);
-        if (configFile.createNewFile()) {
-            Properties prop = new Properties();
-            try (OutputStream output = new FileOutputStream(CONFIG_FILE_PATH)) {
-                prop.setProperty(PROP_VIDEO_URL_KEY, PROP_VIDEO_URL_VALUE);
-                prop.setProperty(PROP_CHANNEL_URL_KEY, PROP_CHANNEL_URL_VALUE);
-                prop.setProperty(PROP_THEME_KEY, PROP_THEME_VALUE);
-                prop.store(output, null);
-                return true;
+        if (configFile.getParentFile().exists() || configFile.getParentFile().mkdirs()) {
+            if (configFile.createNewFile()) {
+                Properties prop = new Properties();
+                try (OutputStream output = new FileOutputStream(CONFIG_FILE_PATH)) {
+                    prop.setProperty(PROP_VIDEO_URL_KEY, PROP_VIDEO_URL_VALUE);
+                    prop.setProperty(PROP_CHANNEL_URL_KEY, PROP_CHANNEL_URL_VALUE);
+                    prop.setProperty(PROP_THEME_KEY, PROP_THEME_VALUE);
+                    prop.store(output, null);
+                    return true;
+                }
             }
         }
         return false;
@@ -191,6 +202,19 @@ public final class Config {
                 prop.put(key, value);
                 prop.store(output, null);
             }
+        }
+    }
+
+    /**
+     * Update schema version in config to current version.
+     */
+    public static void updateSchemaVersion() {
+        try {
+            Config.setValue(Config.PROP_SCHEMA_VERSION, String.valueOf(Database.SCHEMA_VERSION));
+        } catch (IOException e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
         }
     }
 }

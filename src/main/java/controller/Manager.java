@@ -1,13 +1,6 @@
 package controller;
 
 import controller.tasks.OpmlReader;
-import view.dialog.AddChannelDialog;
-import view.pane.ChannelPane;
-import view.dialog.ConfirmationDialog;
-import view.dialog.EditChannelDialog;
-import view.dialog.ExceptionDialog;
-import database.Database;
-import exception.ExceptionHandler;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,22 +17,26 @@ import javafx.stage.Stage;
 import model.Channel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import utils.Channels;
 import view.Icon;
 import view.Theme;
+import view.dialog.AddChannelDialog;
+import view.dialog.ConfirmationDialog;
+import view.dialog.EditChannelDialog;
+import view.dialog.ExceptionDialog;
+import view.pane.ChannelPane;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 /**
  * Controller for Channel Manager.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
 public class Manager implements Initializable {
@@ -107,16 +104,9 @@ public class Manager implements Initializable {
     private List<Channel> channelList;
 
     @Override
-    public final void initialize(final URL location,
-                                 final ResourceBundle resources) {
-        try {
-            channelList = collectChannels();
-            showChannel(false);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+    public final void initialize(final URL location, final ResourceBundle resources) {
+        channelList = Channels.getAllOrderByName();
+        showChannel(false);
     }
 
     /**
@@ -140,8 +130,8 @@ public class Manager implements Initializable {
      */
     private void setCss(final String theme) {
         stage.getScene().getStylesheets().clear();
-        stage.getScene().getStylesheets().add(getClass().getResource(
-                Theme.getManagerCss(theme)).toExternalForm());
+        stage.getScene().getStylesheets().add(
+                getClass().getResource(Theme.getManagerCss(theme)).toExternalForm());
     }
 
     /**
@@ -164,13 +154,7 @@ public class Manager implements Initializable {
         for (Channel channel : channelList) {
             channel.setChecked(checkBoxAll.isSelected());
         }
-        try {
-            showChannel(false);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        showChannel(false);
     }
 
     /**
@@ -186,27 +170,18 @@ public class Manager implements Initializable {
             return;
         }
         OpmlReader opmlReader = new OpmlReader(selectedFile);
-        progressMessageManager.textProperty().bind(
-                opmlReader.messageProperty());
-        progressBarManager.progressProperty().bind(
-                opmlReader.progressProperty());
+        progressMessageManager.textProperty().bind(opmlReader.messageProperty());
+        progressBarManager.progressProperty().bind(opmlReader.progressProperty());
         progressBarManager.setVisible(true);
 
         new Thread(opmlReader).start();
         opmlReader.setOnSucceeded(t -> {
-            try {
-                progressMessageManager.textProperty().unbind();
-                progressBarManager.progressProperty().unbind();
-                progressMessageManager.setText("");
-                progressBarManager.setProgress(0);
-                progressBarManager.setVisible(false);
-                showChannel(true);
-            } catch (ClassNotFoundException | SQLException
-                    | ExceptionHandler e) {
-                ExceptionDialog.show(e);
-                LOGGER.error(e);
-                e.printStackTrace();
-            }
+            progressMessageManager.textProperty().unbind();
+            progressBarManager.progressProperty().unbind();
+            progressMessageManager.setText("");
+            progressBarManager.setProgress(0);
+            progressBarManager.setVisible(false);
+            showChannel(true);
         });
 
         opmlReader.setOnFailed(t -> {
@@ -245,39 +220,25 @@ public class Manager implements Initializable {
         ConfirmationDialog.show(
                 "Delete selection",
                 "Are you sure you want to delete the selected channels?",
-                new Task() {
+                new Task<>() {
                     @Override
-                    protected Object call() {
-                        try {
-                            Database.deleteChannels(getSelection());
-                            showChannel(true);
-                        } catch (SQLException | ClassNotFoundException
-                                | ExceptionHandler e) {
-                            ExceptionDialog.show(e);
-                            LOGGER.error(e);
-                            e.printStackTrace();
-                        }
+                    protected Void call() throws IOException {
+                        Channels.delete(getSelectedChannels());
+                        showChannel(true);
                         return null;
                     }
                 });
     }
 
     /**
-     * Triggered when the user clicks on the enable / disable subscription
-     * button.
+     * Triggered when the user clicks on the enable / disable subscription button.
      *
      * @param channel Channel to update
      */
     public final void onSetChannelSubscriptionClicked(final Channel channel) {
-        try {
-            Database.updateChannelSubscription(channel.getId(),
-                    !channel.isSubscribed());
-            showChannel(true);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        channel.setSubscribed(!channel.isSubscribed());
+        Channels.update(channel);
+        showChannel(true);
     }
 
     /**
@@ -302,18 +263,11 @@ public class Manager implements Initializable {
         ConfirmationDialog.show(
                 "Delete channel",
                 "Are you sure you want to delete the channel?",
-                new Task() {
+                new Task<>() {
                     @Override
-                    protected Object call() {
-                        try {
-                            Database.deleteChannel(channel.getId());
-                            showChannel(true);
-                        } catch (SQLException | ClassNotFoundException
-                                | ExceptionHandler e) {
-                            ExceptionDialog.show(e);
-                            LOGGER.error(e);
-                            e.printStackTrace();
-                        }
+                    protected Void call() throws IOException {
+                        Channels.delete(channel);
+                        showChannel(true);
                         return null;
                     }
                 });
@@ -322,80 +276,43 @@ public class Manager implements Initializable {
     /**
      * Triggered when a channel is added.
      *
-     * @param name Channel name
-     * @param ytId Channel YT id
+     * @param channel Channel with created information
      */
-    public final void onChannelAdded(final String name, final String ytId) {
-        try {
-            Database.insertChannel(name, ytId);
-            showChannel(true);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+    public final void onChannelAdded(final Channel channel) {
+        Channels.create(channel);
+        showChannel(true);
     }
 
     /**
      * Triggered when a channel is edited.
      *
-     * @param id   Channel id
-     * @param name Channel name
-     * @param ytId Channel YT id
+     * @param channel Channel with edited information
      */
-    public final void onChannelEdited(final int id, final String name,
-                                      final String ytId) {
-        try {
-            Database.updateChannel(id, name, ytId);
-            showChannel(true);
-        } catch (SQLException | ClassNotFoundException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+    public final void onChannelEdited(final Channel channel) {
+        Channels.update(channel);
+        showChannel(true);
     }
 
     /**
      * Show the channels in the list.
      *
      * @param refresh Get the channels from database
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
      */
-    private void showChannel(final boolean refresh)
-            throws ClassNotFoundException, SQLException, ExceptionHandler {
+    private void showChannel(final boolean refresh) {
         if (refresh) {
-            channelList = Database.getAllChannels();
+            channelList = Channels.getAllOrderByName();
             checkBoxAll.setSelected(false);
         }
-        scrollPaneChannel.setContent(
-                new ChannelPane(this, channelList));
+        scrollPaneChannel.setContent(new ChannelPane(this, channelList));
     }
 
     /**
      * Get selected channels.
      *
-     * @return List of channel id
+     * @return Array of selected channels
      */
-    private List<Integer> getSelection() {
-        return channelList.stream().filter(Channel::isChecked)
-                .map(Channel::getId).collect(Collectors.toList());
-    }
-
-    /**
-     * Collect all the channels stored in the database.
-     *
-     * @return List of channels
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
-     */
-    private List<Channel> collectChannels() throws ClassNotFoundException,
-            SQLException, ExceptionHandler {
-        return Database.getAllChannels();
+    private Channel[] getSelectedChannels() {
+        return channelList.stream().filter(Channel::isChecked).toArray(Channel[]::new);
     }
 
     /**

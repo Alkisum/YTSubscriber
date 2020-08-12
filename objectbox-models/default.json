@@ -1,0 +1,106 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:585705541889381912",
+      "lastPropertyId": "5:2215813800348818605",
+      "name": "Channel",
+      "properties": [
+        {
+          "id": "1:5271507202480221056",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1595044856481894758",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:4558867662299172251",
+          "name": "subscribed",
+          "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "5:2215813800348818605",
+          "name": "ytId",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:2604805366340893582",
+      "lastPropertyId": "9:648611624883413737",
+      "name": "Video",
+      "properties": [
+        {
+          "id": "1:911072341258894073",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3585194523755477830",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "3:864590053025677206",
+          "name": "time",
+          "type": 6,
+          "flags": 4
+        },
+        {
+          "id": "4:3210197807763992318",
+          "name": "thumbnailUrl",
+          "type": 9
+        },
+        {
+          "id": "5:4628993535861982853",
+          "name": "watched",
+          "type": 1,
+          "flags": 4
+        },
+        {
+          "id": "6:2986292344534366044",
+          "name": "duration",
+          "type": 6,
+          "flags": 4
+        },
+        {
+          "id": "7:1146722857979873074",
+          "name": "ytId",
+          "type": 9
+        },
+        {
+          "id": "9:648611624883413737",
+          "name": "channelId",
+          "indexId": "1:8391376430163102611",
+          "type": 11,
+          "flags": 1548,
+          "relationTarget": "Channel"
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:2604805366340893582",
+  "lastIndexId": "1:8391376430163102611",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    5383110089527677953,
+    30386104077995936
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

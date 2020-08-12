@@ -21,7 +21,7 @@ import java.util.Date;
  * Dialog showing information about the application.
  *
  * @author Alkisum
- * @version 2.0
+ * @version 4.0
  * @since 2.0
  */
 public final class AboutDialog {
@@ -34,14 +34,12 @@ public final class AboutDialog {
     /**
      * Date format to parse the build date from the version number.
      */
-    private static final SimpleDateFormat PARSER =
-            new SimpleDateFormat("yyyyMMdd");
+    private static final SimpleDateFormat PARSER = new SimpleDateFormat("yyyyMMdd");
 
     /**
      * Date format to format the build date parsed from the version number.
      */
-    private static final SimpleDateFormat FORMATER =
-            new SimpleDateFormat("MMMM dd, yyyy");
+    private static final SimpleDateFormat FORMATER = new SimpleDateFormat("MMMM dd, yyyy");
 
     /**
      * AboutDialog constructor.
@@ -53,18 +51,16 @@ public final class AboutDialog {
     /**
      * Show the About dialog.
      *
-     * @throws ParseException An error occurred while parsing the build date
-     *                        from the version number
+     * @throws ParseException An error occurred while parsing the build date from the version number
      * @throws IOException    An exception occurred while setting the theme
      */
     public static void show() throws ParseException, IOException {
-        Dialog dialog = new Dialog();
+        Dialog<Void> dialog = new Dialog<>();
         dialog.setWidth(WIDTH);
         dialog.setHeight(HEIGHT);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().getStylesheets().add(
-                AboutDialog.class.getResource(
-                        Theme.getAboutCss(Theme.getTheme())).toExternalForm());
+        dialog.getDialogPane().getStylesheets().add(AboutDialog.class.getResource(
+                Theme.getAboutCss(Theme.getTheme())).toExternalForm());
         dialog.setTitle("About");
         dialog.initStyle(StageStyle.UTILITY);
 

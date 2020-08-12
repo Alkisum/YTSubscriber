@@ -2,8 +2,7 @@ package view.pane;
 
 import config.Config;
 import controller.Updater;
-import database.Database;
-import exception.ExceptionHandler;
+import controller.tasks.VideoDeleter;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.HPos;
@@ -22,13 +21,14 @@ import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ocpsoft.prettytime.PrettyTime;
+import utils.Thumbnails;
+import utils.Videos;
 import view.Icon;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
 import view.dialog.ExceptionDialog;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,10 +37,10 @@ import java.util.List;
  * Class extending GridPane to show videos in Updater.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 1.0
  */
-public class VideoPane extends GridPane {
+public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedListener {
 
     /**
      * Logger.
@@ -51,13 +51,6 @@ public class VideoPane extends GridPane {
      * Play icon path.
      */
     private static final String PLAY = "/img/play.png";
-
-    /**
-     * Default thumbnail path (used when the video's thumbnail file cannot be
-     * found.
-     */
-    private static final String DEFAULT_THUMBNAIL =
-            "/img/default_thumbnail.png";
 
     /**
      * Number of rows for each video pane.
@@ -113,7 +106,7 @@ public class VideoPane extends GridPane {
 
         Task<Void> task = new Task<>() {
             @Override
-            protected Void call() throws Exception {
+            protected Void call() {
                 int row = 0;
                 for (int i = 0; i < videos.size(); i++) {
                     updateProgress(i + 1, videos.size());
@@ -165,17 +158,11 @@ public class VideoPane extends GridPane {
      *
      * @param video Video to add
      * @param pRow  First row where to add information
-     * @throws ClassNotFoundException Exception while trying to use JDBC driver
-     * @throws SQLException           Exception while executing the select
-     *                                statement
-     * @throws ExceptionHandler       Exception while accessing config directory
      */
-    private void addVideo(final Video video, final int pRow)
-            throws SQLException, ExceptionHandler, ClassNotFoundException {
+    private void addVideo(final Video video, final int pRow) {
 
         // Play icon
-        ImageView play = new ImageView(new Image(
-                getClass().getResourceAsStream(PLAY)));
+        ImageView play = new ImageView(new Image(getClass().getResourceAsStream(PLAY)));
         play.setStyle("-fx-cursor: hand;");
         setRowSpan(play, 3);
         play.setVisible(false);
@@ -184,13 +171,11 @@ public class VideoPane extends GridPane {
 
         // Thumbnail
         ImageView thumbnail;
-        if (!video.getThumbnail().exists()) {
-            Image image = new Image(getClass().getResourceAsStream(
-                    DEFAULT_THUMBNAIL));
+        if (!video.getThumbnailFile().exists()) {
+            Image image = new Image(getClass().getResourceAsStream(Thumbnails.DEFAULT_THUMBNAIL));
             thumbnail = new ImageView(image);
         } else {
-            thumbnail = new ImageView(
-                    new Image(video.getThumbnail().toURI().toString()));
+            thumbnail = new ImageView(new Image(video.getThumbnailFile().toURI().toString()));
             thumbnail.setFitWidth(80);
             thumbnail.setPreserveRatio(true);
             thumbnail.setSmooth(true);
@@ -209,19 +194,17 @@ public class VideoPane extends GridPane {
         setVgrow(title, Priority.ALWAYS);
 
         // Channel name
-        Label channelName = new Label("by " + Database.getChannelNameById(
-                video.getChannelId()));
+        Label channelName = new Label("by " + video.getChannel().getTarget().getName());
         channelName.setAlignment(Pos.CENTER_LEFT);
         setColumnSpan(channelName, 5);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
         channelName.setStyle("-fx-cursor: hand;");
         channelName.setOnMouseClicked(
-                event -> updater.selectChannel(video.getChannelId()));
+                event -> updater.selectChannel(video.getChannel().getTargetId()));
 
         // Date
-        Label date = new Label(new PrettyTime().format(
-                new Date(video.getTime())));
+        Label date = new Label(new PrettyTime().format(new Date(video.getTime())));
         date.setStyle("-fx-font-style: italic");
         date.setAlignment(Pos.CENTER_LEFT);
         setHgrow(date, Priority.ALWAYS);
@@ -243,37 +226,32 @@ public class VideoPane extends GridPane {
         Tooltip.install(youtube, new Tooltip("Watch video on YouTube"));
         youtube.setStyle("-fx-cursor: hand;");
         youtube.setOnMouseClicked(
-                event -> updater.getApplication().getHostServices()
-                        .showDocument(video.getUrl()));
+                event -> updater.getApplication().getHostServices().showDocument(video.getUrl()));
 
         // Watch
         Image image;
         Tooltip tooltip;
         if (video.isWatched()) {
-            image = new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.WATCHED)));
+            image = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.WATCHED)));
             tooltip = new Tooltip("Set video to unwatched");
         } else {
-            image = new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.UNWATCHED)));
+            image = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.UNWATCHED)));
             tooltip = new Tooltip("Set video to watched");
         }
         ImageView watched = new ImageView(image);
         Tooltip.install(watched, tooltip);
         watched.setStyle("-fx-cursor: hand;");
-        watched.setOnMouseClicked(
-                event -> updateVideoWatchedState(video, watched));
+        watched.setOnMouseClicked(event -> updateVideoWatchedState(video, watched));
 
         // Delete video
         ImageView delete = new ImageView(new Image(
                 getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE))));
         Tooltip.install(delete, new Tooltip("Delete video"));
         delete.setStyle("-fx-cursor: hand;");
-        delete.setOnMouseClicked(
-                event -> ConfirmationDialog.show("Delete video",
-                        "Are you sure you want to delete the video "
-                                + video.getTitle() + "?",
-                        deleteVideo(video)));
+        delete.setOnMouseClicked(event -> ConfirmationDialog.show(
+                "Delete video",
+                "Are you sure you want to delete the video " + video.getTitle() + "?",
+                new VideoDeleter(this, video)));
 
         // Separator
         Separator separator = new Separator(Orientation.HORIZONTAL);
@@ -343,51 +321,27 @@ public class VideoPane extends GridPane {
     /**
      * Update the video watched state?
      *
-     * @param video   Video to update
-     * @param watched Watched state: true if video watched, false otherwise
+     * @param video     Video to update
+     * @param imageView Icon showing watched state
      */
     private void updateVideoWatchedState(final Video video,
-                                         final ImageView watched) {
-        try {
-            Database.updateVideoWatchState(video, !video.isWatched());
-        } catch (ClassNotFoundException | SQLException
-                | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-        if (video.isWatched()) {
-            watched.setImage(new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.UNWATCHED))));
+                                         final ImageView imageView) {
+        boolean watched = !video.isWatched();
+        video.setWatched(watched);
+        if (watched) {
+            imageView.setImage(new Image(
+                    getClass().getResourceAsStream(Icon.getIcon(Icon.WATCHED))));
         } else {
-            watched.setImage(new Image(getClass().getResourceAsStream(
-                    Icon.getIcon(Icon.WATCHED))));
+            imageView.setImage(new Image(
+                    getClass().getResourceAsStream(Icon.getIcon(Icon.UNWATCHED))));
         }
-        video.setWatched(!video.isWatched());
+        Videos.update(video);
         updater.refreshChannelList();
     }
 
-    /**
-     * Delete the given video.
-     *
-     * @param video Video to delete
-     * @return Task deleting the given video
-     */
-    private Task deleteVideo(final Video video) {
-        return new Task() {
-            @Override
-            protected Object call() {
-                try {
-                    Database.deleteVideo(video);
-                    updater.refreshVideoList();
-                } catch (ClassNotFoundException | SQLException
-                        | ExceptionHandler e) {
-                    ExceptionDialog.show(e);
-                    LOGGER.error(e);
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        };
+    @Override
+    public final void onVideosDeleted() {
+        updater.refreshVideoList();
+        updater.refreshChannelList();
     }
 }

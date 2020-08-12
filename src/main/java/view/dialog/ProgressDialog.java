@@ -18,7 +18,7 @@ import java.io.IOException;
  * Dialog to show task progress.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.0
  * @since 2.2
  */
 public class ProgressDialog {
@@ -44,8 +44,7 @@ public class ProgressDialog {
     public static final int WIDTH = 600;
 
     /**
-     * ProgressDialog's height, only used as an estimation to center the dialog
-     * in its parent.
+     * ProgressDialog's height, only used as an estimation to center the dialog in its parent.
      */
     public static final int HEIGHT = 100;
 
