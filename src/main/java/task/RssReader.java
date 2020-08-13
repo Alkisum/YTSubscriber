@@ -1,4 +1,4 @@
-package tasks;
+package task;
 
 import config.Config;
 import javafx.application.Platform;

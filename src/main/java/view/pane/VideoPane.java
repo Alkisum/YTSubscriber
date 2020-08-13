@@ -2,7 +2,7 @@ package view.pane;
 
 import config.Config;
 import controller.VideoController;
-import tasks.VideoDeleter;
+import task.VideoDeleter;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.HPos;

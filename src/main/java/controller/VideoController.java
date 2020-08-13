@@ -1,8 +1,8 @@
 package controller;
 
 import config.Config;
-import tasks.RssReader;
-import tasks.VideoDeleter;
+import task.RssReader;
+import task.VideoDeleter;
 import database.Database;
 import exception.ExceptionHandler;
 import javafx.application.Application;

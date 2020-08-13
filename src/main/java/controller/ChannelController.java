@@ -1,6 +1,6 @@
 package controller;
 
-import tasks.OpmlReader;
+import task.OpmlReader;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

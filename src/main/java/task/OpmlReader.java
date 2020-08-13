@@ -1,4 +1,4 @@
-package tasks;
+package task;
 
 import javafx.concurrent.Task;
 import model.Channel;
