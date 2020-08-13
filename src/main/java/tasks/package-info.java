@@ -2,7 +2,7 @@
  * Tasks package.
  *
  * @author Alkisum
- * @version 1.0
+ * @version 4.1
  * @since 1.0
  */
-package controller.tasks;
+package tasks;

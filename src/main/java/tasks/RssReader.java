@@ -1,4 +1,4 @@
-package controller.tasks;
+package tasks;
 
 import config.Config;
 import javafx.application.Platform;
@@ -25,7 +25,7 @@ import java.util.List;
  * Class to retrieve and read RSS Feeds.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public class RssReader extends Task<Void> {

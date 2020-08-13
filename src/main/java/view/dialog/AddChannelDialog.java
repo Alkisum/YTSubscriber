@@ -1,6 +1,6 @@
 package view.dialog;
 
-import controller.Manager;
+import controller.ChannelController;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -19,7 +19,7 @@ import java.util.Optional;
  * Dialog to add a channel.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public final class AddChannelDialog {
@@ -34,10 +34,10 @@ public final class AddChannelDialog {
     /**
      * Show the dialog.
      *
-     * @param manager Manager instance
-     * @param btn     Button that triggered the dialog
+     * @param channelController ChannelController instance
+     * @param btn               Button that triggered the dialog
      */
-    public static void show(final Manager manager, final Button btn) {
+    public static void show(final ChannelController channelController, final Button btn) {
         Dialog<Channel> dialog = new Dialog<>();
         dialog.setTitle("Add Channel");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -69,7 +69,7 @@ public final class AddChannelDialog {
         Platform.runLater(name::requestFocus);
 
         dialog.setResultConverter(dialogButton -> {
-            manager.enableButton(btn);
+            channelController.enableButton(btn);
             if (dialogButton == ButtonType.OK) {
                 return new Channel(name.getText(), urlId.getText());
             }
@@ -77,6 +77,6 @@ public final class AddChannelDialog {
         });
 
         Optional<Channel> result = dialog.showAndWait();
-        result.ifPresent(manager::onChannelAdded);
+        result.ifPresent(channelController::onChannelAdded);
     }
 }

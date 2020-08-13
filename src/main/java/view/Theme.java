@@ -8,7 +8,7 @@ import java.io.IOException;
  * Class handling themes.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 2.0
  */
 public final class Theme {
@@ -19,24 +19,24 @@ public final class Theme {
     public static final String CLASSIC = "classic";
 
     /**
-     * Classic CSS for Updater.
+     * Classic CSS for Video window.
      */
-    private static final String CLASSIC_UPDATER_CSS = "/updater_classic.css";
+    private static final String CLASSIC_VIDEO_CSS = "/classic_video.css";
 
     /**
-     * Classic CSS for Manager.
+     * Classic CSS for Channel window.
      */
-    private static final String CLASSIC_MANAGER_CSS = "/manager_classic.css";
+    private static final String CLASSIC_CHANNEL_CSS = "/classic_channel.css";
 
     /**
      * Classic CSS for About dialog.
      */
-    private static final String CLASSIC_ABOUT_CSS = "/about_classic.css";
+    private static final String CLASSIC_ABOUT_CSS = "/classic_about.css";
 
     /**
      * Classic CSS for Progress dialog.
      */
-    private static final String CLASSIC_PROGRESS_CSS = "/progress_classic.css";
+    private static final String CLASSIC_PROGRESS_CSS = "/classic_progress.css";
 
     /**
      * Identifier for Dark theme.
@@ -44,24 +44,24 @@ public final class Theme {
     public static final String DARK = "dark";
 
     /**
-     * Dark CSS for Updater.
+     * Dark CSS for Video window.
      */
-    private static final String DARK_UPDATER_CSS = "/updater_dark.css";
+    private static final String DARK_VIDEO_CSS = "/dark_video.css";
 
     /**
-     * Dark CSS for Manager.
+     * Dark CSS for Channel window.
      */
-    private static final String DARK_MANAGER_CSS = "/manager_dark.css";
+    private static final String DARK_CHANNEL_CSS = "/dark_channel.css";
 
     /**
      * Dark CSS for About dialog.
      */
-    private static final String DARK_ABOUT_CSS = "/about_dark.css";
+    private static final String DARK_ABOUT_CSS = "/dark_about.css";
 
     /**
      * Dark CSS for Progress dialog.
      */
-    private static final String DARK_PROGRESS_CSS = "/progress_dark.css";
+    private static final String DARK_PROGRESS_CSS = "/dark_progress.css";
 
     /**
      * Theme constructor.
@@ -109,29 +109,29 @@ public final class Theme {
 
     /**
      * @param theme Theme
-     * @return Updater CSS according to the given theme
+     * @return Video view CSS according to the given theme
      */
-    public static String getUpdaterCss(final String theme) {
+    public static String getVideoCss(final String theme) {
         switch (theme) {
             case DARK:
-                return DARK_UPDATER_CSS;
+                return DARK_VIDEO_CSS;
             case CLASSIC:
             default:
-                return CLASSIC_UPDATER_CSS;
+                return CLASSIC_VIDEO_CSS;
         }
     }
 
     /**
      * @param theme Theme
-     * @return Manager CSS according to the given theme
+     * @return Channel view CSS according to the given theme
      */
-    public static String getManagerCss(final String theme) {
+    public static String getChannelCss(final String theme) {
         switch (theme) {
             case DARK:
-                return DARK_MANAGER_CSS;
+                return DARK_CHANNEL_CSS;
             case CLASSIC:
             default:
-                return CLASSIC_MANAGER_CSS;
+                return CLASSIC_CHANNEL_CSS;
         }
     }
 

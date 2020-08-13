@@ -11,7 +11,7 @@ import utils.Channels;
  * Class defining channel.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 @Entity
@@ -45,7 +45,7 @@ public class Channel {
     private ToMany<Video> videos;
 
     /**
-     * The channel is selected in the manager list.
+     * The channel is selected in the channel window list.
      */
     @Transient
     private boolean checked;
@@ -158,14 +158,14 @@ public class Channel {
     }
 
     /**
-     * @return Channel is selected in manager list
+     * @return Channel is selected in channel window list
      */
     public boolean isChecked() {
         return checked;
     }
 
     /**
-     * @param checked Select the channel in manager list
+     * @param checked Select the channel in channel window list
      */
     public void setChecked(final boolean checked) {
         this.checked = checked;

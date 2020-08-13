@@ -3,7 +3,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<GridPane fx:controller="controller.Updater"
+<GridPane fx:controller="controller.VideoController"
           xmlns:fx="http://javafx.com/fxml">
 
     <MenuBar GridPane.columnIndex="0"

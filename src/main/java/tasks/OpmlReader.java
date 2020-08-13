@@ -1,4 +1,4 @@
-package controller.tasks;
+package tasks;
 
 import javafx.concurrent.Task;
 import model.Channel;
@@ -21,7 +21,7 @@ import java.util.List;
  * Task reading the OPML file to import a list of channels to subscribe.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public class OpmlReader extends Task<List<Channel>> {

@@ -1,6 +1,6 @@
 package view.dialog;
 
-import controller.Manager;
+import controller.ChannelController;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -19,7 +19,7 @@ import java.util.Optional;
  * Dialog to edit a channel.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public final class EditChannelDialog {
@@ -34,11 +34,11 @@ public final class EditChannelDialog {
     /**
      * Show the dialog.
      *
-     * @param manager Manager instance
-     * @param btn     Button that triggered the dialog
-     * @param channel Channel to edit
+     * @param channelController ChannelController instance
+     * @param btn               Button that triggered the dialog
+     * @param channel           Channel to edit
      */
-    public static void show(final Manager manager, final Button btn,
+    public static void show(final ChannelController channelController, final Button btn,
                             final Channel channel) {
         Dialog<Channel> dialog = new Dialog<>();
         dialog.setTitle("Edit Channel");
@@ -70,7 +70,7 @@ public final class EditChannelDialog {
         Platform.runLater(name::requestFocus);
 
         dialog.setResultConverter(dialogButton -> {
-            manager.enableButton(btn);
+            channelController.enableButton(btn);
             if (dialogButton == ButtonType.OK) {
                 channel.setName(name.getText());
                 channel.setYtId(urlId.getText());
@@ -80,6 +80,6 @@ public final class EditChannelDialog {
         });
 
         Optional<Channel> result = dialog.showAndWait();
-        result.ifPresent(manager::onChannelEdited);
+        result.ifPresent(channelController::onChannelEdited);
     }
 }

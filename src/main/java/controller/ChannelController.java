@@ -1,6 +1,6 @@
 package controller;
 
-import controller.tasks.OpmlReader;
+import tasks.OpmlReader;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -33,18 +33,18 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 /**
- * Controller for Channel Manager.
+ * Controller for channel window.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
-public class Manager implements Initializable {
+public class ChannelController implements Initializable {
 
     /**
      * Logger.
      */
-    private static final Logger LOGGER = LogManager.getLogger(Manager.class);
+    private static final Logger LOGGER = LogManager.getLogger(ChannelController.class);
 
     /**
      * Frame dimensions.
@@ -90,13 +90,13 @@ public class Manager implements Initializable {
      * Progress bar.
      */
     @FXML
-    private ProgressBar progressBarManager;
+    private ProgressBar progressBar;
 
     /**
      * Progress message.
      */
     @FXML
-    private Label progressMessageManager;
+    private Label progressMessage;
 
     /**
      * List of channels.
@@ -131,7 +131,7 @@ public class Manager implements Initializable {
     private void setCss(final String theme) {
         stage.getScene().getStylesheets().clear();
         stage.getScene().getStylesheets().add(
-                getClass().getResource(Theme.getManagerCss(theme)).toExternalForm());
+                getClass().getResource(Theme.getChannelCss(theme)).toExternalForm());
     }
 
     /**
@@ -170,27 +170,27 @@ public class Manager implements Initializable {
             return;
         }
         OpmlReader opmlReader = new OpmlReader(selectedFile);
-        progressMessageManager.textProperty().bind(opmlReader.messageProperty());
-        progressBarManager.progressProperty().bind(opmlReader.progressProperty());
-        progressBarManager.setVisible(true);
+        progressMessage.textProperty().bind(opmlReader.messageProperty());
+        progressBar.progressProperty().bind(opmlReader.progressProperty());
+        progressBar.setVisible(true);
 
         new Thread(opmlReader).start();
         opmlReader.setOnSucceeded(t -> {
-            progressMessageManager.textProperty().unbind();
-            progressBarManager.progressProperty().unbind();
-            progressMessageManager.setText("");
-            progressBarManager.setProgress(0);
-            progressBarManager.setVisible(false);
+            progressMessage.textProperty().unbind();
+            progressBar.progressProperty().unbind();
+            progressMessage.setText("");
+            progressBar.setProgress(0);
+            progressBar.setVisible(false);
             showChannel(true);
         });
 
         opmlReader.setOnFailed(t -> {
             try {
-                progressMessageManager.textProperty().unbind();
-                progressBarManager.progressProperty().unbind();
-                progressMessageManager.setText("");
-                progressBarManager.setProgress(0);
-                progressBarManager.setVisible(false);
+                progressMessage.textProperty().unbind();
+                progressBar.progressProperty().unbind();
+                progressMessage.setText("");
+                progressBar.setProgress(0);
+                progressBar.setVisible(false);
                 throw opmlReader.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);

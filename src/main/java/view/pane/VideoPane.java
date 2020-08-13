@@ -1,8 +1,8 @@
 package view.pane;
 
 import config.Config;
-import controller.Updater;
-import controller.tasks.VideoDeleter;
+import controller.VideoController;
+import tasks.VideoDeleter;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.HPos;
@@ -34,10 +34,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Class extending GridPane to show videos in Updater.
+ * Class extending GridPane to show videos in video window.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedListener {
@@ -63,9 +63,9 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
     private final List<Video> videos;
 
     /**
-     * Update instance.
+     * VideoController instance.
      */
-    private final Updater updater;
+    private final VideoController videoController;
 
     /**
      * Progress message.
@@ -81,15 +81,15 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
      * Video pane constructor.
      *
      * @param videos          List of videos
-     * @param updater         Update instance
-     * @param progressMessage Progress message from Updater
-     * @param progressBar     Progress bar from Updated
+     * @param videoController VideoController instance
+     * @param progressMessage Progress message from video window
+     * @param progressBar     Progress bar from video window
      */
-    public VideoPane(final List<Video> videos, final Updater updater,
+    public VideoPane(final List<Video> videos, final VideoController videoController,
                      final Label progressMessage,
                      final ProgressBar progressBar) {
         this.videos = new ArrayList<>(videos);
-        this.updater = updater;
+        this.videoController = videoController;
         this.progressMessage = progressMessage;
         this.progressBar = progressBar;
         setGUI();
@@ -110,8 +110,7 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
                 int row = 0;
                 for (int i = 0; i < videos.size(); i++) {
                     updateProgress(i + 1, videos.size());
-                    updateMessage("Getting " + videos.get(i).getTitle()
-                            + "...");
+                    updateMessage("Getting " + videos.get(i).getTitle() + "...");
                     addVideo(videos.get(i), row);
                     row += ROW_COUNT;
                     if (i > 100) {
@@ -201,7 +200,7 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
         setVgrow(channelName, Priority.ALWAYS);
         channelName.setStyle("-fx-cursor: hand;");
         channelName.setOnMouseClicked(
-                event -> updater.selectChannel(video.getChannel().getTargetId()));
+                event -> videoController.selectChannel(video.getChannel().getTargetId()));
 
         // Date
         Label date = new Label(new PrettyTime().format(new Date(video.getTime())));
@@ -225,8 +224,8 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
                 getClass().getResourceAsStream(Icon.getIcon(Icon.YOUTUBE))));
         Tooltip.install(youtube, new Tooltip("Watch video on YouTube"));
         youtube.setStyle("-fx-cursor: hand;");
-        youtube.setOnMouseClicked(
-                event -> updater.getApplication().getHostServices().showDocument(video.getUrl()));
+        youtube.setOnMouseClicked(event -> videoController.getApplication().getHostServices()
+                .showDocument(video.getUrl()));
 
         // Watch
         Image image;
@@ -336,12 +335,12 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
                     getClass().getResourceAsStream(Icon.getIcon(Icon.UNWATCHED))));
         }
         Videos.update(video);
-        updater.refreshChannelList();
+        videoController.refreshChannelList();
     }
 
     @Override
     public final void onVideosDeleted() {
-        updater.refreshVideoList();
-        updater.refreshChannelList();
+        videoController.refreshVideoList();
+        videoController.refreshChannelList();
     }
 }

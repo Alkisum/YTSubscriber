@@ -1,4 +1,4 @@
-package controller.tasks;
+package tasks;
 
 import javafx.concurrent.Task;
 import model.Video;
@@ -10,7 +10,7 @@ import java.io.IOException;
  * Class to delete a list of videos.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 2.4
  */
 public class VideoDeleter extends Task<Void> {

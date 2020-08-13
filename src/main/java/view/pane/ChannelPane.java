@@ -1,6 +1,6 @@
 package view.pane;
 
-import controller.Manager;
+import controller.ChannelController;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -21,15 +21,15 @@ import java.util.List;
  * Pane extending GridPane and containing Channel attributes.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public class ChannelPane extends GridPane {
 
     /**
-     * Manager instance.
+     * ChannelController instance.
      */
-    private final Manager manager;
+    private final ChannelController channelController;
 
     /**
      * List of channels.
@@ -39,11 +39,11 @@ public class ChannelPane extends GridPane {
     /**
      * ChannelPane constructor.
      *
-     * @param manager  Manager instance
-     * @param channels List of channel to populate the GridPane
+     * @param channelController ChannelController instance
+     * @param channels          List of channel to populate the GridPane
      */
-    public ChannelPane(final Manager manager, final List<Channel> channels) {
-        this.manager = manager;
+    public ChannelPane(final ChannelController channelController, final List<Channel> channels) {
+        this.channelController = channelController;
         this.channels = new ArrayList<>(channels);
         setGUI();
     }
@@ -90,7 +90,7 @@ public class ChannelPane extends GridPane {
             Image imageSubscribed = new Image(getClass().getResourceAsStream(subPath));
             buttonSubscribed.setGraphic(new ImageView(imageSubscribed));
             buttonSubscribed.setOnAction(
-                    (event) -> manager.onSetChannelSubscriptionClicked(channel));
+                    (event) -> channelController.onSetChannelSubscriptionClicked(channel));
             add(buttonSubscribed, 3, row);
 
             // Edit button
@@ -98,7 +98,8 @@ public class ChannelPane extends GridPane {
             buttonEdit.setTooltip(new Tooltip("Edit channel"));
             Image imageEdit = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.EDIT)));
             buttonEdit.setGraphic(new ImageView(imageEdit));
-            buttonEdit.setOnAction((event) -> manager.onEditChannelClicked(event, channel));
+            buttonEdit.setOnAction(
+                    (event) -> channelController.onEditChannelClicked(event, channel));
             add(buttonEdit, 4, row);
 
             // Delete button
@@ -107,7 +108,7 @@ public class ChannelPane extends GridPane {
             Image imageDelete = new Image(
                     getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE)));
             buttonDelete.setGraphic(new ImageView(imageDelete));
-            buttonDelete.setOnAction((event) -> manager.onDeleteChannelClicked(channel));
+            buttonDelete.setOnAction((event) -> channelController.onDeleteChannelClicked(channel));
             add(buttonDelete, 5, row);
         }
 

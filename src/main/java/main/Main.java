@@ -1,7 +1,7 @@
 package main;
 
 import config.Config;
-import controller.Updater;
+import controller.VideoController;
 import database.ObjectBox;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -19,7 +19,7 @@ import java.io.IOException;
  * Main class.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public class Main extends Application {
@@ -43,13 +43,13 @@ public class Main extends Application {
     public final void start(final Stage primaryStage) throws Exception {
         Config.setDefaultValues();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/updater.fxml"));
-        Scene scene = new Scene(loader.load(), Updater.WIDTH, Updater.HEIGHT);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/video.fxml"));
+        Scene scene = new Scene(loader.load(), VideoController.WIDTH, VideoController.HEIGHT);
 
         // Set instances to controller
-        Updater updater = loader.getController();
-        updater.setApplication(this);
-        updater.initTheme(scene);
+        VideoController videoController = loader.getController();
+        videoController.setApplication(this);
+        videoController.initTheme(scene);
 
         primaryStage.setTitle("YTSubscriber");
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/app.png")));
@@ -57,7 +57,7 @@ public class Main extends Application {
 
         setWindow(scene);
 
-        updater.updateDatabase();
+        videoController.updateDatabase();
 
         primaryStage.show();
 
@@ -131,8 +131,8 @@ public class Main extends Application {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();
-            scene.getWindow().setWidth(Updater.WIDTH);
-            scene.getWindow().setHeight(Updater.HEIGHT);
+            scene.getWindow().setWidth(VideoController.WIDTH);
+            scene.getWindow().setHeight(VideoController.HEIGHT);
             scene.getWindow().centerOnScreen();
         }
     }

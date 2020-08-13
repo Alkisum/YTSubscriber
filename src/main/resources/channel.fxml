@@ -8,7 +8,7 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tooltip?>
-<GridPane fx:controller="controller.Manager"
+<GridPane fx:controller="controller.ChannelController"
           xmlns:fx="http://javafx.com/fxml">
 
     <GridPane GridPane.columnIndex="0"
@@ -82,13 +82,13 @@
                 GridPane.vgrow="ALWAYS"
                 fitToWidth="true"/>
 
-    <Label fx:id="progressMessageManager"
+    <Label fx:id="progressMessage"
            styleClass="progress-message"
            GridPane.columnIndex="0"
            GridPane.rowIndex="2"
            GridPane.hgrow="ALWAYS"/>
 
-    <ProgressBar fx:id="progressBarManager"
+    <ProgressBar fx:id="progressBar"
                  styleClass="progress-bar"
                  GridPane.columnIndex="1"
                  GridPane.rowIndex="2"

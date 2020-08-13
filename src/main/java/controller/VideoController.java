@@ -1,8 +1,8 @@
 package controller;
 
 import config.Config;
-import controller.tasks.RssReader;
-import controller.tasks.VideoDeleter;
+import tasks.RssReader;
+import tasks.VideoDeleter;
 import database.Database;
 import exception.ExceptionHandler;
 import javafx.application.Application;
@@ -51,18 +51,18 @@ import java.util.Queue;
 import java.util.ResourceBundle;
 
 /**
- * Controller for Subscription Updater.
+ * Controller for video window.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
-public class Updater implements Initializable {
+public class VideoController implements Initializable {
 
     /**
      * Logger.
      */
-    private static final Logger LOGGER = LogManager.getLogger(Updater.class);
+    private static final Logger LOGGER = LogManager.getLogger(VideoController.class);
 
     /**
      * Frame dimensions.
@@ -90,7 +90,7 @@ public class Updater implements Initializable {
     private List<Video> videosShown = new ArrayDeque<>();
 
     /**
-     * Identifier to refresh the videos after calling {@link Updater#onRefreshClicked()}.
+     * Identifier to refresh the videos after calling {@link VideoController#onRefreshClicked()}.
      * The identifier is either a channel id or -1 for unwatched videos.
      */
     private long postRefreshId;
@@ -278,7 +278,7 @@ public class Updater implements Initializable {
     private void setCss(final String theme) {
         scene.getStylesheets().clear();
         scene.getStylesheets().add(
-                getClass().getResource(Theme.getUpdaterCss(theme)).toExternalForm());
+                getClass().getResource(Theme.getVideoCss(theme)).toExternalForm());
     }
 
     /**
@@ -307,13 +307,14 @@ public class Updater implements Initializable {
     @FXML
     public final void onManageClicked(final ActionEvent actionEvent) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/manager.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/channel.fxml"));
             Stage stage = new Stage();
             stage.setTitle("Channel Manager");
             stage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/app.png")));
-            stage.setScene(new Scene(loader.load(), Manager.WIDTH, Manager.HEIGHT));
-            Manager manager = loader.getController();
-            manager.setStage(stage);
+            stage.setScene(
+                    new Scene(loader.load(), ChannelController.WIDTH, ChannelController.HEIGHT));
+            ChannelController channelController = loader.getController();
+            channelController.setStage(stage);
             // Disable manager button
             MenuItem menuItem = (MenuItem) actionEvent.getSource();
             menuItem.setDisable(true);
