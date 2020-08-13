@@ -17,7 +17,6 @@ import okhttp3.ResponseBody;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.List;
 
@@ -34,11 +33,6 @@ public final class Videos {
      * Default base URL for videos.
      */
     public static final String BASE_URL = "https://www.youtube.com/watch?v=";
-
-    /**
-     * Date format for video published date.
-     */
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * Path of directory containing the thumbnails.

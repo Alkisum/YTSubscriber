@@ -24,13 +24,12 @@ apply plugin: 'java-library'
 apply plugin: 'io.objectbox'
 
 group 'com.alkisum.javafx.ytsubscriber'
-version '4.0'
+version '4.1.dev'
 mainClassName = 'main.Main'
 
 sourceCompatibility = 1.9
 
 dependencies {
-    implementation 'org.xerial:sqlite-jdbc:3.32.3.2'
     implementation 'org.ocpsoft.prettytime:prettytime:4.0.4.Final'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'org.apache.logging.log4j:log4j-api:2.13.3'

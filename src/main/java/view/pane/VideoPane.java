@@ -2,7 +2,6 @@ package view.pane;
 
 import config.Config;
 import controller.VideoController;
-import task.VideoDeleter;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.HPos;
@@ -21,6 +20,7 @@ import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ocpsoft.prettytime.PrettyTime;
+import task.VideoDeleter;
 import utils.Thumbnails;
 import utils.Videos;
 import view.Icon;
