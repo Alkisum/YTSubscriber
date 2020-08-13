@@ -1,10 +1,6 @@
 package controller;
 
-import config.Config;
-import task.RssReader;
-import task.VideoDeleter;
-import database.Database;
-import exception.ExceptionHandler;
+import database.MigrationHelper;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -13,7 +9,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -25,12 +20,13 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import kotlin.collections.ArrayDeque;
 import model.Channel;
 import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import task.RssReader;
+import task.VideoDeleter;
 import utils.Channels;
 import utils.Videos;
 import view.Icon;
@@ -39,16 +35,11 @@ import view.dialog.AboutDialog;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
 import view.dialog.ExceptionDialog;
-import view.dialog.ProgressDialog;
 import view.pane.VideoPane;
 
 import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Queue;
-import java.util.ResourceBundle;
 
 /**
  * Controller for video window.
@@ -57,7 +48,7 @@ import java.util.ResourceBundle;
  * @version 4.1
  * @since 1.0
  */
-public class VideoController implements Initializable {
+public class VideoController implements MigrationHelper.Listener {
 
     /**
      * Logger.
@@ -94,16 +85,6 @@ public class VideoController implements Initializable {
      * The identifier is either a channel id or -1 for unwatched videos.
      */
     private long postRefreshId;
-
-    /**
-     * Tasks to update the database.
-     */
-    private Queue<Task<?>> updateTasks;
-
-    /**
-     * Current task to update the database.
-     */
-    private Task<?> currentUpdateTask;
 
     /**
      * RadioMenuItem for classic theme.
@@ -154,25 +135,14 @@ public class VideoController implements Initializable {
     private Button buttonRefresh;
 
     @Override
-    public final void initialize(final URL location, final ResourceBundle resources) {
-        try {
-            // Create database tables if they do not exist yet
-            updateTasks = Database.init();
-        } catch (ClassNotFoundException | SQLException | ExceptionHandler e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-
-        if (updateTasks == null) {
-            setGui();
-        }
+    public final void onMigrationFinished() {
+        this.init();
     }
 
     /**
-     * Set GUI components, add listeners.
+     * Set GUI components, populate lists, add listeners.
      */
-    private void setGui() {
+    public void init() {
         // Initialize channel list
         refreshChannelList();
 
@@ -192,82 +162,27 @@ public class VideoController implements Initializable {
     }
 
     /**
-     * Update the database if necessary.
-     */
-    public final void updateDatabase() {
-        if (updateTasks == null) {
-            Config.updateSchemaVersion();
-            return;
-        }
-        currentUpdateTask = updateTasks.poll();
-
-        // All update tasks succeeded
-        if (currentUpdateTask == null) {
-            setGui();
-            Config.updateSchemaVersion();
-            return;
-        }
-
-        // Start next update task
-        try {
-            ProgressDialog progressDialog = new ProgressDialog();
-
-            currentUpdateTask.setOnSucceeded(t -> {
-                progressDialog.dismiss();
-                updateDatabase();
-            });
-
-            currentUpdateTask.setOnFailed(t -> {
-                progressDialog.dismiss();
-                try {
-                    throw currentUpdateTask.getException();
-                } catch (Throwable throwable) {
-                    ExceptionDialog.show(throwable);
-                    LOGGER.error(throwable);
-                    throwable.printStackTrace();
-                }
-            });
-            Window window = scene.getWindow();
-
-            double x = window.getX() + window.getWidth() / 2.0 - ProgressDialog.WIDTH / 2.0;
-            double y = window.getY() + window.getHeight() / 2.0 - ProgressDialog.HEIGHT / 2.0;
-            progressDialog.show(currentUpdateTask, x, y);
-            new Thread(currentUpdateTask).start();
-        } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Read and set the theme set in the config file.
      *
      * @param pScene Scene
      */
     public final void initTheme(final Scene pScene) {
         this.scene = pScene;
-        try {
-            String theme = Theme.getTheme();
-            setCss(theme);
-            // Set the RadioMenuItem
-            switch (theme) {
-                case Theme.CLASSIC:
-                    radioMenuItemThemeClassic.setSelected(true);
-                    break;
-                case Theme.DARK:
-                    radioMenuItemThemeDark.setSelected(true);
-                    break;
-                default:
-                    break;
-            }
-            // Set the refresh button image
-            setButtonGraphics();
-        } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+        String theme = Theme.getTheme();
+        setCss(theme);
+        // Set the RadioMenuItem
+        switch (theme) {
+            case Theme.CLASSIC:
+                radioMenuItemThemeClassic.setSelected(true);
+                break;
+            case Theme.DARK:
+                radioMenuItemThemeDark.setSelected(true);
+                break;
+            default:
+                break;
         }
+        // Set the refresh button image
+        setButtonGraphics();
     }
 
     /**
@@ -605,7 +520,7 @@ public class VideoController implements Initializable {
     public final void onAboutClicked() {
         try {
             AboutDialog.show();
-        } catch (ParseException | IOException e) {
+        } catch (ParseException e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
             e.printStackTrace();

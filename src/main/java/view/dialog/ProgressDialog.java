@@ -12,13 +12,11 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import view.Theme;
 
-import java.io.IOException;
-
 /**
  * Dialog to show task progress.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 2.2
  */
 public class ProgressDialog {
@@ -50,10 +48,8 @@ public class ProgressDialog {
 
     /**
      * ProgressDialog constructor.
-     *
-     * @throws IOException An exception occurred while getting the theme
      */
-    public ProgressDialog() throws IOException {
+    public ProgressDialog() {
         dialogStage = new Stage();
         dialogStage.initStyle(StageStyle.UTILITY);
         dialogStage.initModality(Modality.APPLICATION_MODAL);

@@ -12,7 +12,6 @@ import javafx.scene.text.Font;
 import javafx.stage.StageStyle;
 import view.Theme;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +20,7 @@ import java.util.Date;
  * Dialog showing information about the application.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 2.0
  */
 public final class AboutDialog {
@@ -39,7 +38,7 @@ public final class AboutDialog {
     /**
      * Date format to format the build date parsed from the version number.
      */
-    private static final SimpleDateFormat FORMATER = new SimpleDateFormat("MMMM dd, yyyy");
+    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat("MMMM dd, yyyy");
 
     /**
      * AboutDialog constructor.
@@ -52,9 +51,8 @@ public final class AboutDialog {
      * Show the About dialog.
      *
      * @throws ParseException An error occurred while parsing the build date from the version number
-     * @throws IOException    An exception occurred while setting the theme
      */
-    public static void show() throws ParseException, IOException {
+    public static void show() throws ParseException {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setWidth(WIDTH);
         dialog.setHeight(HEIGHT);
@@ -84,12 +82,12 @@ public final class AboutDialog {
             title = p.getImplementationTitle();
             String[] fullVersion = p.getImplementationVersion().split("_");
             version = fullVersion[0];
-            date = FORMATER.format(PARSER.parse(fullVersion[1]));
+            date = FORMATTER.format(PARSER.parse(fullVersion[1]));
             website = p.getImplementationVendor();
         } else {
             title = "Title";
             version = "x.x";
-            date = FORMATER.format(new Date());
+            date = FORMATTER.format(new Date());
             website = "Website";
 
         }

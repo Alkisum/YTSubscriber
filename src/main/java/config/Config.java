@@ -1,12 +1,8 @@
 package config;
 
-import database.Database;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import utils.Channels;
 import utils.Videos;
 import view.Theme;
-import view.dialog.ExceptionDialog;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,15 +16,10 @@ import java.util.Properties;
  * Class defining the application configuration.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 public final class Config {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(Config.class);
 
     /**
      * User directory.
@@ -117,8 +108,7 @@ public final class Config {
     /**
      * Set default values to config file if the key does not exist yet.
      *
-     * @throws IOException An exception occurred while reading or writing the
-     *                     file
+     * @throws IOException An exception occurred while reading or writing the file
      */
     public static void setDefaultValues() throws IOException {
         if (getValue(PROP_VIDEO_URL_KEY) == null) {
@@ -145,8 +135,7 @@ public final class Config {
     /**
      * Create the configuration file if it does not exist yet.
      *
-     * @return true if the configuration file has been created with the keys,
-     * false otherwise
+     * @return true if the configuration file has been created with the keys, false otherwise
      * @throws IOException An exception occurred while creating the file
      */
     private static boolean createFile() throws IOException {
@@ -191,8 +180,7 @@ public final class Config {
      * @param value Value
      * @throws IOException An exception occurred while setting the value
      */
-    public static void setValue(final String key, final String value)
-            throws IOException {
+    public static void setValue(final String key, final String value) throws IOException {
         if (configFileExists() || createFile()) {
             Properties prop = new Properties();
             try (InputStream input = new FileInputStream(CONFIG_FILE_PATH)) {
@@ -202,19 +190,6 @@ public final class Config {
                 prop.put(key, value);
                 prop.store(output, null);
             }
-        }
-    }
-
-    /**
-     * Update schema version in config to current version.
-     */
-    public static void updateSchemaVersion() {
-        try {
-            Config.setValue(Config.PROP_SCHEMA_VERSION, String.valueOf(Database.SCHEMA_VERSION));
-        } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
         }
     }
 }

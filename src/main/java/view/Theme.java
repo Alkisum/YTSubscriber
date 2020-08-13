@@ -74,14 +74,17 @@ public final class Theme {
      * Get the theme written in the configuration file.
      *
      * @return Theme id
-     * @throws IOException An exception occurred while getting the theme
      */
-    public static String getTheme() throws IOException {
-        String theme = Config.getValue(Config.PROP_THEME_KEY);
-        if (theme == null || !isValid(theme)) {
+    public static String getTheme() {
+        try {
+            String theme = Config.getValue(Config.PROP_THEME_KEY);
+            if (theme == null || !isValid(theme)) {
+                theme = CLASSIC;
+            }
+            return theme;
+        } catch (IOException e) {
             return CLASSIC;
         }
-        return theme;
     }
 
     /**

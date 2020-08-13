@@ -1,6 +1,5 @@
 package controller;
 
-import task.OpmlReader;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,6 +16,7 @@ import javafx.stage.Stage;
 import model.Channel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import task.OpmlReader;
 import utils.Channels;
 import view.Icon;
 import view.Theme;
@@ -113,14 +113,8 @@ public class ChannelController implements Initializable {
      * Read the theme set in the config file.
      */
     private void initTheme() {
-        try {
-            setCss(Theme.getTheme());
-            setButtonGraphics();
-        } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
-        }
+        setCss(Theme.getTheme());
+        setButtonGraphics();
     }
 
     /**

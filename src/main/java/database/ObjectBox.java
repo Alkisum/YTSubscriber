@@ -10,7 +10,7 @@ import java.io.File;
  * Singleton class providing ObjectBox database.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 4.0
  */
 public final class ObjectBox {

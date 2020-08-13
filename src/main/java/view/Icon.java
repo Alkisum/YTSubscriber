@@ -1,12 +1,10 @@
 package view;
 
-import java.io.IOException;
-
 /**
  * Class defining icons used in the application.
  *
  * @author Alkisum
- * @version 3.0
+ * @version 4.1
  * @since 2.0
  */
 public final class Icon {
@@ -107,16 +105,12 @@ public final class Icon {
      * @return Icon path
      */
     public static String getIcon(final int index) {
-        try {
-            switch (Theme.getTheme()) {
-                case Theme.DARK:
-                    return DARK_ICONS[index];
-                case Theme.CLASSIC:
-                default:
-                    return CLASSIC_ICONS[index];
-            }
-        } catch (IOException e) {
-            return CLASSIC_ICONS[index];
+        switch (Theme.getTheme()) {
+            case Theme.DARK:
+                return DARK_ICONS[index];
+            case Theme.CLASSIC:
+            default:
+                return CLASSIC_ICONS[index];
         }
     }
 }

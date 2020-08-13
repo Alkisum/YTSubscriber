@@ -2,6 +2,7 @@ package main;
 
 import config.Config;
 import controller.VideoController;
+import database.MigrationHelper;
 import database.ObjectBox;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -56,10 +57,14 @@ public class Main extends Application {
         primaryStage.setScene(scene);
 
         setWindow(scene);
-
-        videoController.updateDatabase();
-
         primaryStage.show();
+
+        MigrationHelper migrationHelper = new MigrationHelper(videoController, scene.getWindow());
+        if (migrationHelper.hasPendingMigration()) {
+            migrationHelper.migrate();
+        } else {
+            videoController.init();
+        }
 
         primaryStage.setOnCloseRequest(event -> {
             ObjectBox.close();
