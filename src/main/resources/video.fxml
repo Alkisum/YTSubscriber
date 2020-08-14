@@ -54,6 +54,8 @@
                       onAction="#onUnwatchAllClicked"/>
             <MenuItem text="Delete all"
                       onAction="#onDeleteAllClicked"/>
+            <MenuItem text="Fetch all duration"
+                      onAction="#onFetchAllDurationClicked"/>
         </Menu>
         <Menu text="_Help">
             <MenuItem text="About"

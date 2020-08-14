@@ -135,7 +135,7 @@ public class RssReader extends Task<Void> {
                         if (url != null && Config.getValue(Config.PROP_API_KEY) != null) {
                             try {
                                 duration = Videos.retrieveDuration(ytId);
-                            } catch (Exception e) {
+                            } catch (IOException e) {
                                 durationError = true;
                             }
                         }

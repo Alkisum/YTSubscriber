@@ -1,5 +1,6 @@
 package controller;
 
+import config.Config;
 import database.MigrationHelper;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -25,6 +26,7 @@ import model.Channel;
 import model.Video;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import task.DurationFetcher;
 import task.RssReader;
 import task.VideoDeleter;
 import utils.Channels;
@@ -268,11 +270,7 @@ public class VideoController implements MigrationHelper.Listener {
 
         final RssReader finalRssReaderOnSuccess = rssReader;
         rssReader.setOnSucceeded(t -> {
-            progressMessage.textProperty().unbind();
-            progressBar.progressProperty().unbind();
-            progressMessage.setText("");
-            progressBar.setProgress(0);
-            progressBar.setVisible(false);
+            resetProgressComponents();
 
             refreshChannelList();
             refreshVideoList();
@@ -292,11 +290,7 @@ public class VideoController implements MigrationHelper.Listener {
         final RssReader finalRssReaderOnFailed = rssReader;
         rssReader.setOnFailed(t -> {
             try {
-                progressMessage.textProperty().unbind();
-                progressBar.progressProperty().unbind();
-                progressMessage.setText("");
-                progressBar.setProgress(0);
-                progressBar.setVisible(false);
+                resetProgressComponents();
                 throw finalRssReaderOnFailed.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
@@ -390,11 +384,7 @@ public class VideoController implements MigrationHelper.Listener {
         new Thread(videoDeleter).start();
 
         videoDeleter.setOnSucceeded(t -> {
-            progressMessage.textProperty().unbind();
-            progressBar.progressProperty().unbind();
-            progressMessage.setText("");
-            progressBar.setProgress(0);
-            progressBar.setVisible(false);
+            resetProgressComponents();
             refreshChannelList();
             refreshVideoList();
         });
@@ -402,12 +392,53 @@ public class VideoController implements MigrationHelper.Listener {
         final VideoDeleter finalVideoDeleterOnFailed = videoDeleter;
         videoDeleter.setOnFailed(t -> {
             try {
-                progressMessage.textProperty().unbind();
-                progressBar.progressProperty().unbind();
-                progressMessage.setText("");
-                progressBar.setProgress(0);
-                progressBar.setVisible(false);
+                resetProgressComponents();
                 throw finalVideoDeleterOnFailed.getException();
+            } catch (Throwable throwable) {
+                ExceptionDialog.show(throwable);
+                LOGGER.error(throwable);
+                throwable.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Triggered when the fetch all duration item from menu is clicked.
+     * Fetch duration for all videos with a duration of 0 (most probably not set yet).
+     */
+    @FXML
+    public void onFetchAllDurationClicked() {
+        try {
+            if (Config.getValue(Config.PROP_API_KEY) == null) {
+                ErrorDialog.show("Fetch duration",
+                        "A YouTube API key is required for this action.");
+                return;
+            }
+        } catch (IOException e) {
+            ExceptionDialog.show(e);
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+
+        DurationFetcher durationFetcher = new DurationFetcher();
+
+        progressMessage.textProperty().bind(durationFetcher.messageProperty());
+        progressBar.progressProperty().bind(durationFetcher.progressProperty());
+        progressBar.setVisible(true);
+
+        new Thread(durationFetcher).start();
+
+        durationFetcher.setOnSucceeded(t -> {
+            resetProgressComponents();
+            refreshVideoList();
+        });
+
+        final DurationFetcher finalDurationFetcherOnFailed = durationFetcher;
+        durationFetcher.setOnFailed(t -> {
+            try {
+                resetProgressComponents();
+                refreshVideoList();
+                throw finalDurationFetcherOnFailed.getException();
             } catch (Throwable throwable) {
                 ExceptionDialog.show(throwable);
                 LOGGER.error(throwable);
@@ -450,6 +481,17 @@ public class VideoController implements MigrationHelper.Listener {
     }
 
     /**
+     * Reset progress components.
+     */
+    private void resetProgressComponents() {
+        progressMessage.textProperty().unbind();
+        progressBar.progressProperty().unbind();
+        progressMessage.setText("");
+        progressBar.setProgress(0);
+        progressBar.setVisible(false);
+    }
+
+    /**
      * Find the channel with the given id in the list view and return its index.
      *
      * @param channelId Channel id to find
@@ -482,6 +524,7 @@ public class VideoController implements MigrationHelper.Listener {
     /**
      * Triggered when the Exit item is clicked in the Menu.
      */
+    @FXML
     public final void onExitClicked() {
         Platform.exit();
     }
@@ -489,6 +532,7 @@ public class VideoController implements MigrationHelper.Listener {
     /**
      * Triggered when the classic theme is selected.
      */
+    @FXML
     public final void onClassicThemeSelected() {
         try {
             setCss(Theme.CLASSIC);
@@ -505,6 +549,7 @@ public class VideoController implements MigrationHelper.Listener {
     /**
      * Triggered when the dark theme is selected.
      */
+    @FXML
     public final void onDarkThemeSelected() {
         try {
             setCss(Theme.DARK);
@@ -521,6 +566,7 @@ public class VideoController implements MigrationHelper.Listener {
     /**
      * Triggered when the About item from menu is clicked.
      */
+    @FXML
     public final void onAboutClicked() {
         try {
             AboutDialog.show();

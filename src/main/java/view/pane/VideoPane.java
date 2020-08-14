@@ -41,7 +41,7 @@ import java.util.List;
  * @version 4.1
  * @since 1.0
  */
-public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedListener {
+public class VideoPane extends GridPane implements VideoDeleter.Listener {
 
     /**
      * Logger.

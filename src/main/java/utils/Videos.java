@@ -68,6 +68,7 @@ public final class Videos {
      * @param ytId Video ID to retrieve the duration for
      * @return Video duration in seconds
      * @throws IOException An error occurred while reading the API key from the configuration file
+     *                     or while fetching the duration
      */
     public static long retrieveDuration(final String ytId) throws IOException {
         // Build HTTP request

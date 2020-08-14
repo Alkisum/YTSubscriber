@@ -18,7 +18,7 @@ public class VideoDeleter extends Task<Void> {
     /**
      * Listener used when videos are deleted. Can be null if no post action is necessary.
      */
-    private final OnVideosDeletedListener listener;
+    private final Listener listener;
 
     /**
      * Videos to delete.
@@ -32,7 +32,7 @@ public class VideoDeleter extends Task<Void> {
      *                 necessary
      * @param videos   List of videos to delete
      */
-    public VideoDeleter(final OnVideosDeletedListener listener, final Video... videos) {
+    public VideoDeleter(final Listener listener, final Video... videos) {
         this.listener = listener;
         this.videos = videos;
     }
@@ -54,7 +54,7 @@ public class VideoDeleter extends Task<Void> {
     /**
      * Listener used when videos are deleted.
      */
-    public interface OnVideosDeletedListener {
+    public interface Listener {
 
         /**
          * Called when videos are deleted.

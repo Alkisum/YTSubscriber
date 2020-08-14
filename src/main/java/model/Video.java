@@ -167,6 +167,13 @@ public class Video {
     }
 
     /**
+     * @param duration Video duration in seconds
+     */
+    public void setDuration(final long duration) {
+        this.duration = duration;
+    }
+
+    /**
      * @return YT id
      */
     public String getYtId() {
