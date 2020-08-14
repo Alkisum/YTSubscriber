@@ -9,7 +9,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -47,9 +46,14 @@ public class ChannelController implements Initializable {
     private static final Logger LOGGER = LogManager.getLogger(ChannelController.class);
 
     /**
-     * Frame dimensions.
+     * Frame width.
      */
-    static final int WIDTH = 1024, HEIGHT = 768;
+    static final int WIDTH = 1024;
+
+    /**
+     * Frame height.
+     */
+    static final int HEIGHT = 768;
 
     /**
      * Stage instance.
@@ -132,12 +136,9 @@ public class ChannelController implements Initializable {
      * Set the buttons graphics.
      */
     private void setButtonGraphics() {
-        buttonImportChannels.setGraphic(new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.DOWNLOAD)))));
-        buttonAddChannel.setGraphic(new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.ADD)))));
-        buttonDeleteSelection.setGraphic(new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE)))));
+        buttonImportChannels.setGraphic(new ImageView(Icon.get(Icon.DOWNLOAD)));
+        buttonAddChannel.setGraphic(new ImageView(Icon.get(Icon.ADD)));
+        buttonDeleteSelection.setGraphic(new ImageView(Icon.get(Icon.DELETE)));
     }
 
     /**

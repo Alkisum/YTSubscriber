@@ -35,7 +35,7 @@
     },
     {
       "id": "2:2604805366340893582",
-      "lastPropertyId": "9:648611624883413737",
+      "lastPropertyId": "10:9068953655943962235",
       "name": "Video",
       "properties": [
         {
@@ -84,6 +84,11 @@
           "type": 11,
           "flags": 1548,
           "relationTarget": "Channel"
+        },
+        {
+          "id": "10:9068953655943962235",
+          "name": "startTime",
+          "type": 9
         }
       ],
       "relations": []

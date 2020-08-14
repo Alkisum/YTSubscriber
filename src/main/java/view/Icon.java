@@ -1,5 +1,7 @@
 package view;
 
+import javafx.scene.image.Image;
+
 /**
  * Class defining icons used in the application.
  *
@@ -60,6 +62,16 @@ public final class Icon {
     public static final int YOUTUBE = 9;
 
     /**
+     * Index for Update icon.
+     */
+    public static final int START_TIME = 10;
+
+    /**
+     * Index for Update accent icon.
+     */
+    public static final int START_TIME_SET = 11;
+
+    /**
      * Array of icon path for Classic theme.
      */
     private static final String[] CLASSIC_ICONS = new String[]{
@@ -73,6 +85,8 @@ public final class Icon {
             "/icons/ic_visibility_dark_18dp.png",
             "/icons/ic_visibility_off_dark_18dp.png",
             "/icons/ic_youtube_dark_18dp.png",
+            "/icons/ic_watch_later_dark_18dp.png",
+            "/icons/ic_watch_later_accent_dark_18dp.png"
     };
 
     /**
@@ -89,6 +103,8 @@ public final class Icon {
             "/icons/ic_visibility_light_18dp.png",
             "/icons/ic_visibility_off_light_18dp.png",
             "/icons/ic_youtube_light_18dp.png",
+            "/icons/ic_watch_later_light_18dp.png",
+            "/icons/ic_watch_later_accent_light_18dp.png"
     };
 
     /**
@@ -99,18 +115,18 @@ public final class Icon {
     }
 
     /**
-     * Return the icon path at the given index according to the current theme.
+     * Return the icon image at the given index according to the current theme.
      *
      * @param index Index where the icon path is stored
-     * @return Icon path
+     * @return Icon image
      */
-    public static String getIcon(final int index) {
+    public static Image get(final int index) {
         switch (Theme.getTheme()) {
             case Theme.DARK:
-                return DARK_ICONS[index];
+                return new Image(Icon.class.getResourceAsStream(DARK_ICONS[index]));
             case Theme.CLASSIC:
             default:
-                return CLASSIC_ICONS[index];
+                return new Image(Icon.class.getResourceAsStream(CLASSIC_ICONS[index]));
         }
     }
 }

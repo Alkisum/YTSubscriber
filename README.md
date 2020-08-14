@@ -46,7 +46,6 @@ mediaPlayer=
 + [log4j](https://logging.apache.org/log4j/2.x/)
 + [prettytime](https://github.com/ocpsoft/prettytime)
 + [Gradle Shadow](https://github.com/johnrengelman/shadow)
-+ [SQLite JDBC Driver](https://github.com/xerial/sqlite-jdbc)
 + [ObjectBox](https://github.com/objectbox/objectbox-java)
 
 

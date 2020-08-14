@@ -47,7 +47,7 @@ public class MigrationHelper {
     private int currentSchemaVersion;
 
     /**
-     * Task to migrate database to schema version 6.
+     * Task to migrate database to schema version 6 (not implemented yet).
      */
     private final Task<Void> migrateToSchemaVersion6 = new Task<>() {
         @Override
@@ -81,9 +81,9 @@ public class MigrationHelper {
      * @return true if there is pending migration, false otherwise
      */
     public final boolean hasPendingMigration() {
-        if (currentSchemaVersion < 6) {
-            migrationTasks.add(migrateToSchemaVersion6);
-        }
+        // if (currentSchemaVersion < 6) {
+        //     migrationTasks.add(migrateToSchemaVersion6);
+        // }
         return !migrationTasks.isEmpty();
     }
 

@@ -27,6 +27,7 @@ import view.Icon;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
 import view.dialog.ExceptionDialog;
+import view.dialog.SetStartTimeDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -188,14 +189,14 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
         Label title = new Label(video.getTitle());
         title.setStyle("-fx-font-weight: bold");
         title.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(title, 5);
+        setColumnSpan(title, 6);
         setHgrow(title, Priority.ALWAYS);
         setVgrow(title, Priority.ALWAYS);
 
         // Channel name
         Label channelName = new Label("by " + video.getChannel().getTarget().getName());
         channelName.setAlignment(Pos.CENTER_LEFT);
-        setColumnSpan(channelName, 5);
+        setColumnSpan(channelName, 6);
         setHgrow(channelName, Priority.ALWAYS);
         setVgrow(channelName, Priority.ALWAYS);
         channelName.setStyle("-fx-cursor: hand;");
@@ -220,31 +221,38 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
         GridPane.setHalignment(duration, HPos.RIGHT);
 
         // YouTube
-        ImageView youtube = new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.YOUTUBE))));
+        ImageView youtube = new ImageView(Icon.get(Icon.YOUTUBE));
         Tooltip.install(youtube, new Tooltip("Watch video on YouTube"));
         youtube.setStyle("-fx-cursor: hand;");
         youtube.setOnMouseClicked(event -> videoController.getApplication().getHostServices()
                 .showDocument(video.getUrl()));
 
         // Watch
-        Image image;
+        Image watchedImage;
         Tooltip tooltip;
         if (video.isWatched()) {
-            image = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.WATCHED)));
+            watchedImage = Icon.get(Icon.WATCHED);
             tooltip = new Tooltip("Set video to unwatched");
         } else {
-            image = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.UNWATCHED)));
+            watchedImage = Icon.get(Icon.UNWATCHED);
             tooltip = new Tooltip("Set video to watched");
         }
-        ImageView watched = new ImageView(image);
+        ImageView watched = new ImageView(watchedImage);
         Tooltip.install(watched, tooltip);
         watched.setStyle("-fx-cursor: hand;");
         watched.setOnMouseClicked(event -> updateVideoWatchedState(video, watched));
 
+        // Start time
+        ImageView startTime = new ImageView(this.getStartTimeImage(video));
+        Tooltip.install(startTime, new Tooltip("Set start time"));
+        startTime.setStyle("-fx-cursor: hand;");
+        startTime.setOnMouseClicked(event -> {
+            SetStartTimeDialog.show(video);
+            startTime.setImage(this.getStartTimeImage(video));
+        });
+
         // Delete video
-        ImageView delete = new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE))));
+        ImageView delete = new ImageView(Icon.get(Icon.DELETE));
         Tooltip.install(delete, new Tooltip("Delete video"));
         delete.setStyle("-fx-cursor: hand;");
         delete.setOnMouseClicked(event -> ConfirmationDialog.show(
@@ -254,7 +262,7 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
 
         // Separator
         Separator separator = new Separator(Orientation.HORIZONTAL);
-        setColumnSpan(separator, 6);
+        setColumnSpan(separator, 7);
 
         Platform.runLater(() -> {
             int row = pRow;
@@ -266,7 +274,8 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
             add(duration, 2, row);
             add(youtube, 3, row);
             add(watched, 4, row);
-            add(delete, 5, row++);
+            add(startTime, 5, row);
+            add(delete, 6, row++);
             add(separator, 0, row);
         });
     }
@@ -318,24 +327,35 @@ public class VideoPane extends GridPane implements VideoDeleter.OnVideosDeletedL
     }
 
     /**
-     * Update the video watched state?
+     * Update the video watched state.
      *
      * @param video     Video to update
      * @param imageView Icon showing watched state
      */
-    private void updateVideoWatchedState(final Video video,
-                                         final ImageView imageView) {
+    private void updateVideoWatchedState(final Video video, final ImageView imageView) {
         boolean watched = !video.isWatched();
         video.setWatched(watched);
         if (watched) {
-            imageView.setImage(new Image(
-                    getClass().getResourceAsStream(Icon.getIcon(Icon.WATCHED))));
+            imageView.setImage(Icon.get(Icon.WATCHED));
         } else {
-            imageView.setImage(new Image(
-                    getClass().getResourceAsStream(Icon.getIcon(Icon.UNWATCHED))));
+            imageView.setImage(Icon.get(Icon.UNWATCHED));
         }
         Videos.update(video);
         videoController.refreshChannelList();
+    }
+
+    /**
+     * Check whether the given video has a start time set and return the button image accordingly.
+     *
+     * @param video Video to check
+     * @return Image according to video start time
+     */
+    private Image getStartTimeImage(final Video video) {
+        if (video.getStartTime() == null || video.getStartTime().isEmpty()) {
+            return Icon.get(Icon.START_TIME);
+        } else {
+            return Icon.get(Icon.START_TIME_SET);
+        }
     }
 
     @Override

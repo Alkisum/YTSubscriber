@@ -56,9 +56,14 @@ public class VideoController implements MigrationHelper.Listener {
     private static final Logger LOGGER = LogManager.getLogger(VideoController.class);
 
     /**
-     * Frame dimensions.
+     * Frame width.
      */
-    public static final int WIDTH = 1024, HEIGHT = 768;
+    public static final int WIDTH = 1024;
+
+    /**
+     * Frame height.
+     */
+    public static final int HEIGHT = 768;
 
     /**
      * Identifier for list of unwatched videos.
@@ -200,8 +205,7 @@ public class VideoController implements MigrationHelper.Listener {
      * Set the buttons graphics.
      */
     private void setButtonGraphics() {
-        buttonRefresh.setGraphic(new ImageView(new Image(
-                getClass().getResourceAsStream(Icon.getIcon(Icon.REFRESH)))));
+        buttonRefresh.setGraphic(new ImageView(Icon.get(Icon.REFRESH)));
     }
 
     /**

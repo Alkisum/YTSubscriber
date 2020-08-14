@@ -13,7 +13,7 @@ import java.io.IOException;
  * Class defining video.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 1.0
  */
 @Entity
@@ -56,6 +56,11 @@ public class Video {
     private String ytId;
 
     /**
+     * Time the video should be started.
+     */
+    private String startTime;
+
+    /**
      * Video's channel.
      */
     private ToOne<Channel> channel;
@@ -88,31 +93,6 @@ public class Video {
     }
 
     /**
-     * Video constructor.
-     *
-     * @param id           Video id
-     * @param title        Video title
-     * @param time         Video published time
-     * @param thumbnailUrl Thumbnail URL
-     * @param watched      True if the video has been watched, false otherwise
-     * @param channelId    Channel's video id
-     * @param duration     Video duration in seconds
-     * @param ytId         YT id
-     */
-    public Video(final long id, final String title, final long time, final String thumbnailUrl,
-                 final boolean watched, final int channelId, final long duration,
-                 final String ytId) {
-        this.id = id;
-        this.title = title;
-        this.time = time;
-        this.thumbnailUrl = thumbnailUrl;
-        this.watched = watched;
-        this.duration = duration;
-        this.ytId = ytId;
-        this.channel.setTargetId(channelId);
-    }
-
-    /**
      * @return Video id
      */
     public long getId() {
@@ -137,7 +117,11 @@ public class Video {
      * @return Video URL
      */
     public String getUrl() {
-        return getBaseUrl() + ytId;
+        String url = getBaseUrl() + ytId;
+        if (startTime != null && !startTime.isEmpty()) {
+            url += "&t=" + startTime;
+        }
+        return url;
     }
 
     /**
@@ -145,13 +129,6 @@ public class Video {
      */
     public long getTime() {
         return time;
-    }
-
-    /**
-     * @param time Video published time to set
-     */
-    public void setTime(final long time) {
-        this.time = time;
     }
 
     /**
@@ -190,13 +167,6 @@ public class Video {
     }
 
     /**
-     * @param duration Video duration in seconds to set
-     */
-    public void setDuration(final long duration) {
-        this.duration = duration;
-    }
-
-    /**
      * @return YT id
      */
     public String getYtId() {
@@ -204,10 +174,17 @@ public class Video {
     }
 
     /**
-     * @param ytId YT id to set
+     * @return Time the video should be started
      */
-    public void setYtId(final String ytId) {
-        this.ytId = ytId;
+    public String getStartTime() {
+        return startTime;
+    }
+
+    /**
+     * @param startTime Time the video should be started
+     */
+    public void setStartTime(final String startTime) {
+        this.startTime = startTime;
     }
 
     /**

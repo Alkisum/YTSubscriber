@@ -72,22 +72,6 @@ public class Channel {
     }
 
     /**
-     * Channel constructor.
-     *
-     * @param id         Channel id
-     * @param name       Channel name
-     * @param subscribed Channel subscribed flag
-     * @param ytId       YT id
-     */
-    public Channel(final int id, final String name, final boolean subscribed, final String ytId) {
-        this.id = id;
-        this.name = name;
-        this.subscribed = subscribed;
-        this.ytId = ytId;
-        this.checked = false;
-    }
-
-    /**
      * @return Channel id
      */
     public long getId() {

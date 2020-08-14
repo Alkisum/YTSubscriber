@@ -77,17 +77,16 @@ public class ChannelPane extends GridPane {
 
             // Subscribed button
             Button buttonSubscribed = new Button();
-            String subPath;
+            Image imageSubscribed;
             Tooltip tooltip;
             if (channel.isSubscribed()) {
                 tooltip = new Tooltip("Disable subscription");
-                subPath = Icon.getIcon(Icon.SUB_ON);
+                imageSubscribed = Icon.get(Icon.SUB_ON);
             } else {
                 tooltip = new Tooltip("Enable subscription");
-                subPath = Icon.getIcon(Icon.SUB_OFF);
+                imageSubscribed = Icon.get(Icon.SUB_OFF);
             }
             buttonSubscribed.setTooltip(tooltip);
-            Image imageSubscribed = new Image(getClass().getResourceAsStream(subPath));
             buttonSubscribed.setGraphic(new ImageView(imageSubscribed));
             buttonSubscribed.setOnAction(
                     (event) -> channelController.onSetChannelSubscriptionClicked(channel));
@@ -96,8 +95,7 @@ public class ChannelPane extends GridPane {
             // Edit button
             Button buttonEdit = new Button();
             buttonEdit.setTooltip(new Tooltip("Edit channel"));
-            Image imageEdit = new Image(getClass().getResourceAsStream(Icon.getIcon(Icon.EDIT)));
-            buttonEdit.setGraphic(new ImageView(imageEdit));
+            buttonEdit.setGraphic(new ImageView(Icon.get(Icon.EDIT)));
             buttonEdit.setOnAction(
                     (event) -> channelController.onEditChannelClicked(event, channel));
             add(buttonEdit, 4, row);
@@ -105,9 +103,7 @@ public class ChannelPane extends GridPane {
             // Delete button
             Button buttonDelete = new Button();
             buttonDelete.setTooltip(new Tooltip("Delete channel"));
-            Image imageDelete = new Image(
-                    getClass().getResourceAsStream(Icon.getIcon(Icon.DELETE)));
-            buttonDelete.setGraphic(new ImageView(imageDelete));
+            buttonDelete.setGraphic(new ImageView(Icon.get(Icon.DELETE)));
             buttonDelete.setOnAction((event) -> channelController.onDeleteChannelClicked(channel));
             add(buttonDelete, 5, row);
         }
