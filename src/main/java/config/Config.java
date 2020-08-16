@@ -30,8 +30,7 @@ public final class Config {
     /**
      * Properties file name.
      */
-    private static final String CONFIG_FILE_PATH = USER_DIR
-            + "config.properties";
+    private static final String CONFIG_FILE_PATH = USER_DIR + "config.properties";
 
     /**
      * Key for video URL in properties file.
@@ -86,7 +85,12 @@ public final class Config {
     /**
      * Key for schema version in properties file.
      */
-    public static final String PROP_SCHEMA_VERSION = "schemaVersion";
+    public static final String PROP_SCHEMA_VERSION_KEY = "schemaVersion";
+
+    /**
+     * Default value for schema version in properties file.
+     */
+    public static final String PROP_SCHEMA_VERSION_VALUE = "5";
 
     /**
      * Key for API key in properties file.
@@ -119,6 +123,9 @@ public final class Config {
         }
         if (getValue(PROP_THEME_KEY) == null) {
             setValue(PROP_THEME_KEY, PROP_THEME_VALUE);
+        }
+        if (getValue(PROP_SCHEMA_VERSION_KEY) == null) {
+            setValue(PROP_SCHEMA_VERSION_KEY, PROP_SCHEMA_VERSION_VALUE);
         }
     }
 

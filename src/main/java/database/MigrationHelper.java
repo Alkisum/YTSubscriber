@@ -130,7 +130,7 @@ public class MigrationHelper {
     private int readSchemaVersion() {
         int schemaVersion = 0;
         try {
-            String s = Config.getValue(Config.PROP_SCHEMA_VERSION);
+            String s = Config.getValue(Config.PROP_SCHEMA_VERSION_KEY);
             if (s != null) {
                 schemaVersion = Integer.parseInt(s);
             }
@@ -145,7 +145,7 @@ public class MigrationHelper {
      */
     private void updateSchemaVersion() {
         try {
-            Config.setValue(Config.PROP_SCHEMA_VERSION, String.valueOf(currentSchemaVersion));
+            Config.setValue(Config.PROP_SCHEMA_VERSION_KEY, String.valueOf(currentSchemaVersion));
         } catch (IOException e) {
             ExceptionDialog.show(e);
             LOGGER.error(e);
