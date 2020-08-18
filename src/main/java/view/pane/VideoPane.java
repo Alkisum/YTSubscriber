@@ -17,16 +17,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import model.Video;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.ocpsoft.prettytime.PrettyTime;
 import task.VideoDeleter;
+import utils.ExceptionHandler;
 import utils.Thumbnails;
 import utils.Videos;
 import view.Icon;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
-import view.dialog.ExceptionDialog;
 import view.dialog.SetStartTimeDialog;
 
 import java.io.IOException;
@@ -42,11 +40,6 @@ import java.util.List;
  * @since 1.0
  */
 public class VideoPane extends GridPane implements VideoDeleter.Listener {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(VideoPane.class);
 
     /**
      * Play icon path.
@@ -146,9 +139,7 @@ public class VideoPane extends GridPane implements VideoDeleter.Listener {
                 progressBar.setVisible(false);
                 throw task.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(VideoPane.class, throwable);
             }
         });
     }
@@ -315,14 +306,11 @@ public class VideoPane extends GridPane implements VideoDeleter.Listener {
             pb.command(command);
             pb.start();
         } catch (IOException e) {
-            Platform.runLater(() -> {
-                ErrorDialog.show("Streamlink not found",
-                        "Streamlink cannot be found on your system."
-                                + "\nPlease, make sure Streamlink is installed."
-                                + "\n(https://streamlink.github.io/)");
-                LOGGER.error(e);
-                e.printStackTrace();
-            });
+            Platform.runLater(() -> ErrorDialog.show(
+                    "Streamlink not found",
+                    "Streamlink cannot be found on your system."
+                            + "\nPlease, make sure Streamlink is installed."
+                            + "\n(https://streamlink.github.io/)"));
         }
     }
 

@@ -10,9 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import view.dialog.ExceptionDialog;
+import utils.ExceptionHandler;
 
 import java.io.IOException;
 
@@ -24,11 +22,6 @@ import java.io.IOException;
  * @since 1.0
  */
 public class Main extends Application {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
     /**
      * Minimum width of the window.
@@ -133,9 +126,7 @@ public class Main extends Application {
                 scene.getWindow().setY(y);
             }
         } catch (NumberFormatException | IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(Main.class, e);
             scene.getWindow().setWidth(VideoController.WIDTH);
             scene.getWindow().setHeight(VideoController.HEIGHT);
             scene.getWindow().centerOnScreen();

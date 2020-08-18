@@ -67,7 +67,7 @@ public class OpmlReader extends Task<List<Channel>> {
                     updateProgress(i + 1, nodeList.getLength());
                     updateMessage("Importing " + name + "...");
                     String ytId = url.substring(url.lastIndexOf("=") + 1);
-                    Channels.create(new Channel(name, ytId));
+                    Channels.save(new Channel(name, ytId));
                 } catch (MalformedURLException | URISyntaxException e) {
                     // Nothing to do here, just don't add the channel
                 }

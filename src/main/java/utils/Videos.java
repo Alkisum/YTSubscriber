@@ -24,7 +24,7 @@ import java.util.List;
  * Utility class for videos.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 4.0
  */
 public final class Videos {
@@ -99,7 +99,7 @@ public final class Videos {
     }
 
     /**
-     * Check if a video exists from its YT id.
+     * Check if a video exists based on its YT id.
      *
      * @param ytId YT id
      * @return true if a video exists, false otherwise
@@ -169,7 +169,7 @@ public final class Videos {
      * @param channelId Channel id to get the videos from
      * @return List of videos
      */
-    public static List<Video> getVideosByChannelId(final long channelId) {
+    public static List<Video> getByChannelId(final long channelId) {
         return VIDEO_BOX.query().equal(Video_.channelId, channelId)
                 .orderDesc(Video_.time).build().find();
     }

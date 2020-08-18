@@ -20,25 +20,27 @@ import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import kotlin.collections.ArrayDeque;
 import model.Channel;
 import model.Video;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import task.DurationFetcher;
+import task.JsonExporter;
+import task.JsonImporter;
 import task.RssReader;
 import task.VideoDeleter;
 import utils.Channels;
+import utils.ExceptionHandler;
 import utils.Videos;
 import view.Icon;
 import view.Theme;
 import view.dialog.AboutDialog;
 import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
-import view.dialog.ExceptionDialog;
 import view.pane.VideoPane;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
@@ -51,11 +53,6 @@ import java.util.List;
  * @since 1.0
  */
 public class VideoController implements MigrationHelper.Listener {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(VideoController.class);
 
     /**
      * Frame width.
@@ -247,9 +244,7 @@ public class VideoController implements MigrationHelper.Listener {
             });
             stage.show();
         } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(VideoController.class, e);
         }
     }
 
@@ -287,15 +282,12 @@ public class VideoController implements MigrationHelper.Listener {
             buttonRefresh.setDisable(false);
         });
 
-        final RssReader finalRssReaderOnFailed = rssReader;
         rssReader.setOnFailed(t -> {
+            resetProgressComponents();
             try {
-                resetProgressComponents();
-                throw finalRssReaderOnFailed.getException();
+                throw rssReader.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(VideoController.class, throwable);
             }
 
             buttonRefresh.setDisable(false);
@@ -389,15 +381,12 @@ public class VideoController implements MigrationHelper.Listener {
             refreshVideoList();
         });
 
-        final VideoDeleter finalVideoDeleterOnFailed = videoDeleter;
         videoDeleter.setOnFailed(t -> {
+            resetProgressComponents();
             try {
-                resetProgressComponents();
-                throw finalVideoDeleterOnFailed.getException();
+                throw videoDeleter.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(VideoController.class, throwable);
             }
         });
     }
@@ -415,9 +404,7 @@ public class VideoController implements MigrationHelper.Listener {
                 return;
             }
         } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(VideoController.class, e);
         }
 
         DurationFetcher durationFetcher = new DurationFetcher();
@@ -433,16 +420,13 @@ public class VideoController implements MigrationHelper.Listener {
             refreshVideoList();
         });
 
-        final DurationFetcher finalDurationFetcherOnFailed = durationFetcher;
         durationFetcher.setOnFailed(t -> {
+            resetProgressComponents();
+            refreshVideoList();
             try {
-                resetProgressComponents();
-                refreshVideoList();
-                throw finalDurationFetcherOnFailed.getException();
+                throw durationFetcher.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(VideoController.class, throwable);
             }
         });
     }
@@ -464,7 +448,7 @@ public class VideoController implements MigrationHelper.Listener {
         if (postRefreshId == UNWATCHED_VIDEOS_ID) {
             videosShown = Videos.getUnwatchedVideos();
         } else {
-            videosShown = Videos.getVideosByChannelId(postRefreshId);
+            videosShown = Videos.getByChannelId(postRefreshId);
         }
         scrollPaneVideo.setContent(new VideoPane(videosShown, this, progressMessage, progressBar));
     }
@@ -540,9 +524,7 @@ public class VideoController implements MigrationHelper.Listener {
             setButtonGraphics();
             refreshVideoList();
         } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(VideoController.class, e);
         }
     }
 
@@ -557,9 +539,7 @@ public class VideoController implements MigrationHelper.Listener {
             setButtonGraphics();
             refreshVideoList();
         } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(VideoController.class, e);
         }
     }
 
@@ -571,9 +551,75 @@ public class VideoController implements MigrationHelper.Listener {
         try {
             AboutDialog.show();
         } catch (ParseException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(VideoController.class, e);
+        }
+    }
+
+    /**
+     * Triggered when the Export item from menu is clicked.
+     */
+    @FXML
+    public void onExportClicked() {
+        FileChooser fileChooser = new FileChooser();
+        File file = fileChooser.showSaveDialog(scene.getWindow());
+        if (file != null) {
+            JsonExporter jsonExporter = new JsonExporter(file);
+
+            progressMessage.textProperty().bind(jsonExporter.messageProperty());
+            progressBar.progressProperty().bind(jsonExporter.progressProperty());
+            progressBar.setVisible(true);
+
+            new Thread(jsonExporter).start();
+
+            jsonExporter.setOnSucceeded(t -> {
+                resetProgressComponents();
+                refreshVideoList();
+            });
+
+            jsonExporter.setOnFailed(t -> {
+                resetProgressComponents();
+                refreshVideoList();
+                try {
+                    throw jsonExporter.getException();
+                } catch (Throwable throwable) {
+                    ExceptionHandler.handle(VideoController.class, throwable);
+                }
+            });
+        }
+    }
+
+    /**
+     * Triggered when the Import item from menu is clicked.
+     */
+    @FXML
+    public void onImportClicked() {
+        FileChooser fileChooser = new FileChooser();
+        File file = fileChooser.showOpenDialog(scene.getWindow());
+        if (file != null) {
+            JsonImporter jsonImporter = new JsonImporter(file);
+
+            progressMessage.textProperty().bind(jsonImporter.messageProperty());
+            progressBar.progressProperty().bind(jsonImporter.progressProperty());
+            progressBar.setVisible(true);
+
+            new Thread(jsonImporter).start();
+
+            jsonImporter.setOnSucceeded(t -> {
+                resetProgressComponents();
+                refreshChannelList();
+                refreshVideoList();
+            });
+
+            jsonImporter.setOnFailed(t -> {
+                resetProgressComponents();
+                refreshChannelList();
+                refreshVideoList();
+                try {
+                    throw jsonImporter.getException();
+                } catch (Throwable throwable) {
+                    ExceptionHandler.handle(VideoController.class, throwable);
+                }
+            });
         }
     }
 }

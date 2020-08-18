@@ -15,7 +15,7 @@ import java.util.List;
  * Utility class for channels.
  *
  * @author Alkisum
- * @version 4.0
+ * @version 4.1
  * @since 4.0
  */
 public final class Channels {
@@ -43,6 +43,13 @@ public final class Channels {
     }
 
     /**
+     * @return All channels.
+     */
+    public static List<Channel> getAll() {
+        return CHANNEL_BOX.getAll();
+    }
+
+    /**
      * @return All channels order by name.
      */
     public static List<Channel> getAllOrderByName() {
@@ -50,20 +57,11 @@ public final class Channels {
     }
 
     /**
-     * Create channels.
+     * Save channels.
      *
-     * @param channels Channels to create
+     * @param channels Channels to save
      */
-    public static void create(final Channel... channels) {
-        CHANNEL_BOX.put(channels);
-    }
-
-    /**
-     * Update channels.
-     *
-     * @param channels Channels to update
-     */
-    public static void update(final Channel... channels) {
+    public static void save(final Channel... channels) {
         CHANNEL_BOX.put(channels);
     }
 
@@ -81,6 +79,15 @@ public final class Channels {
     }
 
     /**
+     * Delete all channels.
+     *
+     * @throws IOException An error occurred while deleting the video thumbnail file
+     */
+    public static void deleteAll() throws IOException {
+        delete(getAll().toArray(new Channel[0]));
+    }
+
+    /**
      * Count the number of unwatched videos in the channel identified by the given id.
      *
      * @param channelId Channel id
@@ -92,7 +99,6 @@ public final class Channels {
                 .equal(Video_.watched, false)
                 .build().count();
     }
-
 
     /**
      * Clean the channel from the videos watched and not existing anymore in the RSS Feeds.

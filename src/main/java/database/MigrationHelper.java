@@ -3,9 +3,8 @@ package database;
 import config.Config;
 import javafx.concurrent.Task;
 import javafx.stage.Window;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import view.dialog.ExceptionDialog;
+import utils.ExceptionHandler;
+import utils.Logger;
 import view.dialog.ProgressDialog;
 
 import java.io.IOException;
@@ -20,11 +19,6 @@ import java.util.Queue;
  * @since 4.1
  */
 public class MigrationHelper {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(MigrationHelper.class);
 
     /**
      * Listener to get notified when the migration is finished.
@@ -110,9 +104,7 @@ public class MigrationHelper {
             try {
                 throw currentUpdateTask.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(MigrationHelper.class, throwable);
             }
             listener.onMigrationFinished();
         });
@@ -135,7 +127,7 @@ public class MigrationHelper {
                 schemaVersion = Integer.parseInt(s);
             }
         } catch (IOException e) {
-            LOGGER.error(e);
+            Logger.get(MigrationHelper.class).error(e);
         }
         return schemaVersion;
     }
@@ -147,9 +139,7 @@ public class MigrationHelper {
         try {
             Config.setValue(Config.PROP_SCHEMA_VERSION_KEY, String.valueOf(currentSchemaVersion));
         } catch (IOException e) {
-            ExceptionDialog.show(e);
-            LOGGER.error(e);
-            e.printStackTrace();
+            ExceptionHandler.handle(MigrationHelper.class, e);
         }
     }
 

@@ -4,6 +4,7 @@ import config.Config;
 import io.objectbox.annotation.Entity;
 import io.objectbox.annotation.Id;
 import io.objectbox.relation.ToOne;
+import utils.JsonIgnore;
 import utils.Videos;
 
 import java.io.File;
@@ -23,6 +24,7 @@ public class Video {
      * Video id.
      */
     @Id
+    @JsonIgnore
     private long id;
 
     /**
@@ -63,6 +65,7 @@ public class Video {
     /**
      * Video's channel.
      */
+    @JsonIgnore
     private ToOne<Channel> channel;
 
     /**

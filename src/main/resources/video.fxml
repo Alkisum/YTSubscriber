@@ -24,6 +24,10 @@
              GridPane.hgrow="ALWAYS">
 
         <Menu text="_File">
+            <MenuItem text="Export"
+                      onAction="#onExportClicked"/>
+            <MenuItem text="Import"
+                      onAction="#onImportClicked"/>
             <MenuItem text="Exit"
                       onAction="#onExitClicked"/>
         </Menu>

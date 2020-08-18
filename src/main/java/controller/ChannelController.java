@@ -13,16 +13,14 @@ import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Channel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import task.OpmlReader;
 import utils.Channels;
+import utils.ExceptionHandler;
 import view.Icon;
 import view.Theme;
 import view.dialog.AddChannelDialog;
 import view.dialog.ConfirmationDialog;
 import view.dialog.EditChannelDialog;
-import view.dialog.ExceptionDialog;
 import view.pane.ChannelPane;
 
 import java.io.File;
@@ -39,11 +37,6 @@ import java.util.ResourceBundle;
  * @since 1.0
  */
 public class ChannelController implements Initializable {
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = LogManager.getLogger(ChannelController.class);
 
     /**
      * Frame width.
@@ -188,9 +181,7 @@ public class ChannelController implements Initializable {
                 progressBar.setVisible(false);
                 throw opmlReader.getException();
             } catch (Throwable throwable) {
-                ExceptionDialog.show(throwable);
-                LOGGER.error(throwable);
-                throwable.printStackTrace();
+                ExceptionHandler.handle(ChannelController.class, throwable);
             }
         });
     }
@@ -232,7 +223,7 @@ public class ChannelController implements Initializable {
      */
     public final void onSetChannelSubscriptionClicked(final Channel channel) {
         channel.setSubscribed(!channel.isSubscribed());
-        Channels.update(channel);
+        Channels.save(channel);
         showChannel(true);
     }
 
@@ -274,7 +265,7 @@ public class ChannelController implements Initializable {
      * @param channel Channel with created information
      */
     public final void onChannelAdded(final Channel channel) {
-        Channels.create(channel);
+        Channels.save(channel);
         showChannel(true);
     }
 
@@ -284,7 +275,7 @@ public class ChannelController implements Initializable {
      * @param channel Channel with edited information
      */
     public final void onChannelEdited(final Channel channel) {
-        Channels.update(channel);
+        Channels.save(channel);
         showChannel(true);
     }
 

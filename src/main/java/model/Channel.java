@@ -6,6 +6,7 @@ import io.objectbox.annotation.Id;
 import io.objectbox.annotation.Transient;
 import io.objectbox.relation.ToMany;
 import utils.Channels;
+import utils.JsonIgnore;
 
 /**
  * Class defining channel.
@@ -21,6 +22,7 @@ public class Channel {
      * Channel id.
      */
     @Id
+    @JsonIgnore
     private long id;
 
     /**
@@ -48,6 +50,7 @@ public class Channel {
      * The channel is selected in the channel window list.
      */
     @Transient
+    @JsonIgnore
     private boolean checked;
 
     /**
