@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import config.Config;
 import database.ObjectBox;
 import io.objectbox.Box;
+import io.objectbox.query.OrderFlags;
 import io.objectbox.query.QueryBuilder;
 import model.Channel_;
 import model.Video;
@@ -24,7 +25,7 @@ import java.util.List;
  * Utility class for videos.
  *
  * @author Alkisum
- * @version 4.1
+ * @version 4.2
  * @since 4.0
  */
 public final class Videos {
@@ -160,7 +161,8 @@ public final class Videos {
     public static List<Video> getUnwatchedVideos() {
         QueryBuilder<Video> builder = VIDEO_BOX.query().equal(Video_.watched, false);
         builder.link(Video_.channel).equal(Channel_.subscribed, true);
-        return builder.orderDesc(Video_.time).build().find();
+        return builder.order(Video_.startTime, OrderFlags.NULLS_LAST).orderDesc(Video_.time)
+                .build().find();
     }
 
     /**
@@ -171,7 +173,8 @@ public final class Videos {
      */
     public static List<Video> getByChannelId(final long channelId) {
         return VIDEO_BOX.query().equal(Video_.channelId, channelId)
-                .orderDesc(Video_.time).build().find();
+                .order(Video_.startTime, OrderFlags.NULLS_LAST).orderDesc(Video_.time)
+                .build().find();
     }
 
     /**
