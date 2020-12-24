@@ -24,7 +24,7 @@ apply plugin: 'java-library'
 apply plugin: 'io.objectbox'
 
 group 'com.alkisum.javafx.ytsubscriber'
-version '4.1'
+version '4.2'
 mainClassName = 'main.Main'
 
 sourceCompatibility = 1.9
