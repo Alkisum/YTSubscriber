@@ -17,7 +17,7 @@ import java.util.Optional;
  * Dialog to set a start time to a video.
  *
  * @author Alkisum
- * @version 4.1
+ * @version 4.3
  * @since 4.1
  */
 public final class SetStartTimeDialog {
@@ -55,7 +55,11 @@ public final class SetStartTimeDialog {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == ButtonType.OK) {
-                video.setStartTime(startTimeTextField.getText());
+                String startTime = startTimeTextField.getText();
+                if (startTime != null && startTime.isEmpty()) {
+                    startTime = null;
+                }
+                video.setStartTime(startTime);
                 return video;
             }
             return null;
