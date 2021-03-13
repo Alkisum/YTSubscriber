@@ -12,6 +12,13 @@ buildscript {
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '6.0.0'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
+}
+
+javafx {
+    version = "15.0.1"
+    modules = [ 'javafx.controls', 'javafx.graphics', 'javafx.fxml' ]
 }
 
 repositories {
@@ -26,8 +33,6 @@ apply plugin: 'io.objectbox'
 group 'com.alkisum.javafx.ytsubscriber'
 version '4.3'
 mainClassName = 'main.Main'
-
-sourceCompatibility = 1.9
 
 dependencies {
     implementation 'org.ocpsoft.prettytime:prettytime:4.0.4.Final'
