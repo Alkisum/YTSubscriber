@@ -4,6 +4,7 @@ import config.Config;
 import controller.VideoController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -27,6 +28,7 @@ import view.dialog.ConfirmationDialog;
 import view.dialog.ErrorDialog;
 import view.dialog.SetStartTimeDialog;
 
+import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,7 +38,7 @@ import java.util.List;
  * Class extending GridPane to show videos in video window.
  *
  * @author Alkisum
- * @version 4.1
+ * @version 4.5
  * @since 1.0
  */
 public class VideoPane extends GridPane implements VideoDeleter.Listener {
@@ -166,7 +168,13 @@ public class VideoPane extends GridPane implements VideoDeleter.Listener {
             Image image = new Image(getClass().getResourceAsStream(Thumbnails.DEFAULT_THUMBNAIL));
             thumbnail = new ImageView(image);
         } else {
-            thumbnail = new ImageView(new Image(video.getThumbnailFile().toURI().toString()));
+            Image image;
+            try {
+                image = SwingFXUtils.toFXImage(ImageIO.read(video.getThumbnailFile()), null);
+            } catch (IOException e) {
+                image = new Image(getClass().getResourceAsStream(Thumbnails.DEFAULT_THUMBNAIL));
+            }
+            thumbnail = new ImageView(image);
             thumbnail.setFitWidth(80);
             thumbnail.setPreserveRatio(true);
             thumbnail.setSmooth(true);
